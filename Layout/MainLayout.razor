@@ -1,24 +1,35 @@
 ﻿@inherits LayoutComponentBase
 
 <div class="layout-container">
-    <MudAppBar Elevation="@elevation" Color="Color.Primary" Dense="@dense" Class="appbar">
+    <MudAppBar Color="Color.Primary" Fixed="false" Dense="@dense" Class="appbar">
         <MudText Typo="Typo.h5" Class="brand">Medium</MudText>
         <MudSpacer />
         <MudText Typo="Typo.body1" Class="nav-link">Our story</MudText>
         <MudText Typo="Typo.body1" Class="nav-link">Membership</MudText>
         <MudText Typo="Typo.body1" Class="nav-link">Write</MudText>
         <MudText Typo="Typo.body1" Class="nav-link">Sign in</MudText>
-         <MudButton Variant="Variant.Filled" Color="Color.Dark" Style="background-color: black; color:white" Class="round-button px-6 py-2 rounded-pill">
-                    Get started
-                </MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Dark" Style="background-color: black; color:white" Class="round-button px-6 py-2 rounded-pill">
+            Get started
+        </MudButton>
     </MudAppBar>
 
     <main class="content">
         @Body
     </main>
+    <MudAppBar  Bottom="true" Fixed="false" Dense="@dense" Class="appbar-b">
+        <MudText Typo="Typo.body1" Class="nav-link-b">Help</MudText>
+        <MudText Typo="Typo.body1" Class="nav-link-b">Status</MudText>
+        <MudText Typo="Typo.body1" Class="nav-link-b">About</MudText>
+        <MudText Typo="Typo.body1" Class="nav-link-b">Careers</MudText>
+        <MudText Typo="Typo.body1" Class="nav-link-b">Press</MudText>
+        <MudText Typo="Typo.body1" Class="nav-link-b">Blog</MudText>
+        <MudText Typo="Typo.body1" Class="nav-link-b">Privacy</MudText>
+        <MudText Typo="Typo.body1" Class="nav-link-b">Rules</MudText>
+        <MudText Typo="Typo.body1" Class="nav-link-b">Terms</MudText>
+        <MudText Typo="Typo.body1" Class="nav-link-b">Text To Speech</MudText>
+    </MudAppBar>
 </div>
 
 @code {
-    int elevation = 0;
     bool dense = false;
 }

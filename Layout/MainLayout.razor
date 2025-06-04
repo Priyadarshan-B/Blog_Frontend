@@ -1,0 +1,24 @@
+﻿@inherits LayoutComponentBase
+
+<div class="layout-container">
+    <MudAppBar Elevation="@elevation" Color="Color.Primary" Dense="@dense" Class="appbar">
+        <MudText Typo="Typo.h5" Class="brand">Medium</MudText>
+        <MudSpacer />
+        <MudText Typo="Typo.body1" Class="nav-link">Our story</MudText>
+        <MudText Typo="Typo.body1" Class="nav-link">Membership</MudText>
+        <MudText Typo="Typo.body1" Class="nav-link">Write</MudText>
+        <MudText Typo="Typo.body1" Class="nav-link">Sign in</MudText>
+         <MudButton Variant="Variant.Filled" Color="Color.Dark" Style="background-color: black; color:white" Class="round-button px-6 py-2 rounded-pill">
+                    Get started
+                </MudButton>
+    </MudAppBar>
+
+    <main class="content">
+        @Body
+    </main>
+</div>
+
+@code {
+    int elevation = 0;
+    bool dense = false;
+}

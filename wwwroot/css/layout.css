@@ -1,0 +1,39 @@
+.layout-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.appbar {
+    border-bottom: 0.5px solid rgb(0, 0, 0);
+    /* padding: 0 16px; */
+}
+
+.brand {
+    margin-left: 3rem;
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+.nav-link {
+    margin: 0.1rem;
+    padding: 2rem;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.nav-link:hover {
+    color: #3f3d3dcc;
+}
+
+.get-started-btn {
+    margin: 0 1rem;
+    border-radius: 9999px;
+}
+
+.content {
+    flex: 1;
+    padding: 1rem;
+}
+

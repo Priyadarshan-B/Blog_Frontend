@@ -1,0 +1,46 @@
+﻿/* .mud-appbar-border-bottom {
+    border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+    background-color: #fdfaf6;
+} */
+
+.mud-theme-background {
+    background-color: #fdfaf6;
+}
+
+.font-extrabold {
+    font-weight: 800;
+}
+
+.rounded-pill {
+    border-radius: 999px;
+    /* font-size: 1.5rem; */
+
+}
+
+.rounded-pill-home {
+    border-radius: 999px;
+    font-size: 1.5rem;
+    padding: 0.5rem 1.5rem;
+
+}
+
+@media (max-width: 768px) {
+    .text-6xl {
+        font-size: 2.5rem;
+    }
+}
+
+/* hero text */
+.main-text{
+    font-size: 4.5rem;
+    line-height: 1.2;
+    font-weight: 900;
+    color: #333;
+     font-family: "Playfair Display", serif;
+}
+
+.sub-text {
+    font-size: 1.5rem;
+    line-height: 1.5;
+    margin-top: 0.5rem;
+}

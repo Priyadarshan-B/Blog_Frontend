@@ -1,8 +1,10 @@
 @page "/login"
-@inject HttpClient Http
+@using System.Text.Json.Serialization
 
+@inject HttpClient Http
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
+
 
 <h3>Login with Google</h3>
 
@@ -10,41 +12,36 @@
 
 @code {
     private DotNetObjectReference<Login>? objRef;
+    private const string ApiHost = "http://localhost:5000";
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
             objRef = DotNetObjectReference.Create(this);
-            await JS.InvokeVoidAsync("googleLogin.initialize", "598155518602-f5ci4vkj1i84siubr7ad3gd4fn00sonh.apps.googleusercontent.com", objRef);
+            await JS.InvokeVoidAsync("googleLogin.initialize",
+            "598155518602-f5ci4vkj1i84siubr7ad3gd4fn00sonh.apps.googleusercontent.com", objRef);
         }
     }
 
     [JSInvokable("OnGoogleLogin")]
     public async Task OnGoogleLogin(string idToken)
     {
-        // Send the idToken (JWT) to backend
-        var response = await Http.PostAsJsonAsync("api/auth/google", idToken);
+        var reqpayload = new { IdToken = idToken };
+        var response = await Http.PostAsJsonAsync($"{ApiHost}/api/auth/google", reqpayload);
 
         if (response.IsSuccessStatusCode)
         {
             var user = await response.Content.ReadFromJsonAsync<UserResponse>();
 
-            if (user != null)
+            if (user != null && !string.IsNullOrEmpty(user.JwtToken))
             {
-                // Store user info + token in localStorage
-                await JS.InvokeVoidAsync("localStorage.setItem", "userid", user.Id);
-                await JS.InvokeVoidAsync("localStorage.setItem", "username", user.DisplayName);
-                await JS.InvokeVoidAsync("localStorage.setItem", "email", user.Email);
-                await JS.InvokeVoidAsync("localStorage.setItem", "jwt_token", user.JwtToken ?? "");
-
-                // Navigate to post page
+                await JS.InvokeVoidAsync("localStorage.setItem", "D!", user.JwtToken);
                 Navigation.NavigateTo("/post");
             }
         }
         else
         {
-            // Handle failure
             Console.Error.WriteLine("Google sign-in failed: " + await response.Content.ReadAsStringAsync());
         }
     }
@@ -56,9 +53,7 @@
 
     public class UserResponse
     {
-        public string Id { get; set; } = default!;
-        public string DisplayName { get; set; } = default!;
-        public string Email { get; set; } = default!;
-        public string? JwtToken { get; set; } = default!;
+         [JsonPropertyName("token")]
+        public string? JwtToken { get; set; }
     }
 }

@@ -1,0 +1,30 @@
+@inject IJSRuntime JS
+
+@code {
+    public static string UserId { get; private set; } = "";
+    public static string UserName { get; private set; } = "";
+    public static string Email { get; private set; } = "";
+    public static string ProfileImage { get; private set; } = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var token = await JS.InvokeAsync<string>("localStorage.getItem", "D!");
+        if (!string.IsNullOrWhiteSpace(token))
+        {
+            var payload = await JS.InvokeAsync<JwtPayload>("decodeJwt", token);
+            UserId = payload.sub;
+            Email = payload.email;
+            UserName = payload.name ?? "";
+            ProfileImage = payload.picture ?? "";
+        }
+        Console.WriteLine($"UserId: {UserId}, UserName: {UserName}, Email: {Email}, ProfileImage: {ProfileImage}");
+    }
+
+    public class JwtPayload
+    {
+        public string sub { get; set; } = "";
+        public string email { get; set; } = "";
+        public string? name { get; set; }
+        public string? picture { get; set; }
+    }
+}

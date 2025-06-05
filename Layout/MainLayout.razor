@@ -1,22 +1,44 @@
 ﻿@inherits LayoutComponentBase
+@inject NavigationManager Navigation
+@using Blog_Web.Services
+@using MudBlazor
+@inject AuthService AuthService
 
 <div class="layout-container">
-    <MudAppBar Color="Color.Primary" Fixed="false" Dense="@dense" Class="appbar">
+    <MudAppBar Color="Color.Primary" Fixed="false" Dense="false" Class="appbar">
         <MudText Typo="Typo.h5" Class="brand">Medium</MudText>
         <MudSpacer />
-        <MudText Typo="Typo.body1" Class="nav-link">Our story</MudText>
-        <MudText Typo="Typo.body1" Class="nav-link">Membership</MudText>
-        <MudText Typo="Typo.body1" Class="nav-link">Write</MudText>
-        <MudText Typo="Typo.body1" Class="nav-link">Sign in</MudText>
+
+        <MudText Typo="Typo.body1" Class="nav-link" @onclick="@(() => Navigation.NavigateTo("/home"))">Home</MudText>
+        <MudText Typo="Typo.body1" Class="nav-link" @onclick="@(()  => Navigation.NavigateTo("/blog"))" >Write</MudText>
+        <MudText Typo="Typo.body1" Class="nav-link" @onclick="@(()  => Navigation.NavigateTo("/post"))" >Posts</MudText>
+
+
+        @if (AuthService.IsLoggedIn)
+        {
+            <MudText Typo="Typo.body1" Class="nav-link">Hello, @AuthService.UserName</MudText>
+
+        }
+        else
+        {
+            <MudText Typo="Typo.body1" Class="nav-link" @onclick="@(() => Navigation.NavigateTo("/login"))">Sign in</MudText>
+            
+        }
         <MudButton Variant="Variant.Filled" Color="Color.Dark" Style="background-color: black; color:white" Class="round-button px-6 py-2 rounded-pill">
-            Get started
-        </MudButton>
+                Get started
+            </MudButton>
     </MudAppBar>
 
     <main class="content">
         @Body
+        @if(AuthService.IsLoggedIn)
+        {
+         <MudFab StartIcon="@Icons.Material.Filled.Create" Color="Color.Primary" Class="fab" OnClick="@(() => Navigation.NavigateTo("/blog"))" />
+        }
     </main>
-    <MudAppBar  Bottom="true" Fixed="false" Dense="@dense" Class="appbar-b">
+
+    @if(!AuthService.IsLoggedIn){
+<MudAppBar  Bottom="true" Fixed="false" Dense="@dense" Class="appbar-b">
         <MudText Typo="Typo.body1" Class="nav-link-b">Help</MudText>
         <MudText Typo="Typo.body1" Class="nav-link-b">Status</MudText>
         <MudText Typo="Typo.body1" Class="nav-link-b">About</MudText>
@@ -28,8 +50,13 @@
         <MudText Typo="Typo.body1" Class="nav-link-b">Terms</MudText>
         <MudText Typo="Typo.body1" Class="nav-link-b">Text To Speech</MudText>
     </MudAppBar>
+    } 
+     
 </div>
+
+
 
 @code {
     bool dense = false;
 }
+

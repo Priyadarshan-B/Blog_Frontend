@@ -1,0 +1,49 @@
+@page "/blog"
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@using Blog_Web.Services
+@using Blog_Web.Shared
+@using System.Net.Http.Json
+@using MudBlazor
+@inject AuthService AuthService
+
+<PageTitle>Create Post</PageTitle>
+
+<MudPaper Class="p-6 mx-auto mt-4" Style="max-width: 800px;">
+    <MudText Typo="Typo.h5" Class="mb-4">Write a New Blog Post</MudText>
+
+    <MudTextField @bind-Value="Title" Label="Title" Variant="Variant.Outlined" FullWidth="true" Required="true" />
+
+    <MudTextField @bind-Value="Content" Label="Content" Variant="Variant.Outlined" FullWidth="true"
+                  Lines="10" TextArea="true" Class="mt-4" Required="true" />
+
+    <MudButton OnClick="SubmitPost" Variant="Variant.Filled" Color="Color.Primary" Class="mt-4">Publish</MudButton>
+</MudPaper>
+
+@code {
+    private string Title = string.Empty;
+    private string Content = string.Empty;
+
+    private async Task SubmitPost()
+    {
+        var post = new Post
+        {
+            Title = Title,
+            Content = Content,
+            CreatedAt = DateTime.UtcNow,
+            UserId = @AuthService.UserId,
+            AuthorName = @AuthService.UserName
+        };
+
+        var response = await Http.PostAsJsonAsync("http://localhost:5000/api/post", post);
+        if (response.IsSuccessStatusCode)
+        {
+            Navigation.NavigateTo("/post");
+        }
+        else
+        {
+            Console.Error.WriteLine(await response.Content.ReadAsStringAsync());
+        }
+    }
+}
+

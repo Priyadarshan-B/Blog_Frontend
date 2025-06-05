@@ -1,0 +1,116 @@
+@page "/blogpage/{PostId}"
+@inject HttpClient Http
+@inject AuthService AuthService
+@using Blog_Web.Services
+@using Blog_Web.Shared
+@using System.Net.Http.Json
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4 blogpage-container">
+    @if (post == null)
+    {
+        <MudProgressCircular Indeterminate="true" />
+    }
+    else
+    {
+        <MudPaper Class="p-4">
+            <MudText Typo="Typo.h4" Class="mt-4">@post.Title</MudText>
+            <MudText Typo="Typo.subtitle2" Color="Color.Secondary" Class="mb-2">
+                Posted by <b>@post.AuthorName</b>
+                <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary" Class="ml-2" OnClick="ToggleFollow">
+                    @(isFollowing ? "Unfollow" : "Follow")
+                </MudButton>
+            </MudText>
+            <MudText Typo="Typo.body1">@((MarkupString)post.Content)</MudText>
+
+            <div class="mt-4 d-flex gap-4 align-center">
+                <MudIconButton Icon="@Icons.Material.Filled.ThumbUp" OnClick="LikePost" />
+                <MudText>@post.Likes Likes</MudText>
+                <MudIcon Icon="@Icons.Material.Filled.Comment" />
+                <MudText>@post.CommentCount Comments</MudText>
+            </div>
+
+            <div class="comment-section mt-4">
+                <MudTextField @bind-Value="newComment" Immediate="true" Placeholder="Write a comment..." Class="my-2" />
+                <MudButton OnClick="SubmitComment" Disabled="@string.IsNullOrWhiteSpace(newComment)">Reply</MudButton>
+
+                @if (comments != null && comments.Any())
+                {
+                    <div class="mt-2">
+                        @foreach (var comment in comments)
+                        {
+                            <div class="comment mb-1">
+                                <b>@comment.AuthorName</b>: @comment.Content
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </MudPaper>
+    }
+</MudContainer>
+
+@code {
+    [Parameter] public string PostId { get; set; } = default!;
+    private Post? post;
+    private bool isFollowing = false;
+    private string newComment = string.Empty;
+    private List<Comment> comments = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        post = await Http.GetFromJsonAsync<Post>($"http://localhost:5000/api/post/{PostId}");
+        comments = await Http.GetFromJsonAsync<List<Comment>>($"http://localhost:5000/api/post/{PostId}/comments");
+
+        var followResponse = await Http.GetFromJsonAsync<FollowResponse>(
+            $"http://localhost:5000/api/follower/isfollowing?followerId={AuthService.UserId}&followingId={post.UserId}");
+
+        isFollowing = followResponse?.IsFollowing ?? false;
+    }
+
+    private async Task ToggleFollow()
+    {
+        if (isFollowing)
+        {
+            await Http.PostAsync($"http://localhost:5000/api/follower/unfollow?followerId={AuthService.UserId}&followingId={post.UserId}", null);
+        }
+        else
+        {
+            await Http.PostAsync($"http://localhost:5000/api/follower/follow?followerId={AuthService.UserId}&followingId={post.UserId}", null);
+        }
+
+        isFollowing = !isFollowing;
+    }
+
+    private async Task LikePost()
+    {
+        await Http.PostAsync($"http://localhost:5000/api/post/{PostId}/like", null);
+        post.Likes++;
+    }
+
+    private async Task SubmitComment()
+{
+    var commentObj = new Comment
+    {
+        PostId = post.Id,
+        UserId = AuthService.UserId,
+        AuthorName = AuthService.UserName,
+        Content = newComment
+    };
+
+    var response = await Http.PostAsJsonAsync($"http://localhost:5000/api/post/{PostId}/comments", commentObj);
+    if (response.IsSuccessStatusCode)
+    {
+        newComment = string.Empty;
+        comments = await Http.GetFromJsonAsync<List<Comment>>($"http://localhost:5000/api/post/{PostId}/comments");
+        post.CommentCount = comments.Count;
+    }
+}
+    public class FollowResponse
+    {
+        public bool IsFollowing { get; set; }
+    }
+
+   
+
+   
+}

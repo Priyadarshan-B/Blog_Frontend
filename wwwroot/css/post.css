@@ -1,0 +1,64 @@
+.post-container {
+    padding: 1rem;
+}
+
+.post-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.post-card {
+    display: flex;
+    justify-content: space-between;
+    padding: 16px;
+    background-color: white;
+    padding: 10px;
+    border-radius: 10px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+.post-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.comment-section {
+    margin-top: 10px;
+    border-top: 1px solid #ccc;
+    padding-top: 10px;
+}
+
+.comment {
+    padding: 5px 0;
+}
+
+
+.post-left {
+    flex: 1;
+    margin-right: 1rem;
+}
+
+.post-title {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.post-right img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.comment-text{
+    font-size: 12px;
+}
+
+.comment-actions{
+    display: flex;
+    flex-direction: column;
+}

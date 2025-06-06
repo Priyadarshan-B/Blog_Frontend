@@ -32,6 +32,12 @@
                             @((MarkupString)(post.Content.Length > 120 ? post.Content.Substring(0, 120) + "..." : post.Content))
                         </MudText>
                     </div>
+                    <div class="post-right">
+                         @if (!string.IsNullOrEmpty(post.ImageUrl))
+            {
+                <img src="@post.ImageUrl" alt="Post Image" class="post-img" />
+            }
+                    </div>
                     <div class="post-actions">
                         <div class="comment-actions">
                             <MudIcon Icon="@Icons.Material.Filled.ThumbUp" />

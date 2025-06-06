@@ -1,6 +1,7 @@
 .layout-container {
     display: flex;
     flex-direction: column;
+    min-height: 100vh;
     /* background-color: #f7f4ed; */
 
 }
@@ -61,13 +62,21 @@
 }
 
 .content{
+     flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
     background-color: #f7f4ed;
 
 }
 .main-content{
+    /* margin-top: 50px;
   width: 100vw;
-    height: 80vh; 
+    height:  95vh; 
+    overflow-y: auto; */
     /* background-color: #f7f4ed; */
+    flex-grow: 1;
+    padding: 1rem;
+    margin-top: 50px;
 
 }
 

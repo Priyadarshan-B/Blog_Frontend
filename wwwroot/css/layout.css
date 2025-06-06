@@ -1,13 +1,14 @@
 .layout-container {
     display: flex;
     flex-direction: column;
-    background-color: #f7f4ed;
+    /* background-color: #f7f4ed; */
 
 }
 
 .appbar {
-    border-bottom: 0.5px solid rgb(0, 0, 0);
+    /* border-bottom: 0.5px solid rgb(0, 0, 0); */
     background-color: #fdfaf6;
+    color: black;
 }
 
 .appbar-b{
@@ -60,8 +61,13 @@
 }
 
 .content{
-     flex: 1;
-    width: 100vw;
-   
+    background-color: #f7f4ed;
+
+}
+.main-content{
+  width: 100vw;
+    height: 80vh; 
+    /* background-color: #f7f4ed; */
+
 }
 

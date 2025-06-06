@@ -6,10 +6,11 @@
 @using System.Net.Http.Json
 @using MudBlazor
 @inject AuthService AuthService
+@using System.Net.Http
 
 <PageTitle>Create Post</PageTitle>
 
-<MudPaper Class="p-6 mx-auto mt-4" Style="max-width: 800px;">
+<MudPaper Class="p-6 mx-auto mt-4" Style="max-width: 800px; padding: 24px;">
     <MudText Typo="Typo.h5" Class="mb-4">Write a New Blog Post</MudText>
 
     <MudTextField @bind-Value="Title" Label="Title" Variant="Variant.Outlined" FullWidth="true" Required="true" />
@@ -17,12 +18,40 @@
     <MudTextField @bind-Value="Content" Label="Content" Variant="Variant.Outlined" FullWidth="true"
                   Lines="10" TextArea="true" Class="mt-4" Required="true" />
 
+    <MudFileUpload T="IBrowserFile" Accept=".jpg,.jpeg,.png" FilesChanged="HandleFilesChanged" Class="mt-4">
+        <ButtonTemplate>
+            <MudButton HtmlTag="label"
+                       Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.CloudUpload"
+                       For="fileInput"> @* Keep 'For="fileInput"' for accessibility with the hidden input *@
+                Upload Image
+            </MudButton>
+        </ButtonTemplate>
+        <InputTemplate>
+            @* Remove @ref="inputFile" here. MudFileUpload handles the internal wiring. *@
+            <InputFile id="fileInput" hidden />
+        </InputTemplate>
+    </MudFileUpload>
+
+    @if (SelectedFile != null)
+    {
+        <MudText Class="mt-2">Selected file: @SelectedFile.Name</MudText>
+    }
+
     <MudButton OnClick="SubmitPost" Variant="Variant.Filled" Color="Color.Primary" Class="mt-4">Publish</MudButton>
 </MudPaper>
 
 @code {
     private string Title = string.Empty;
     private string Content = string.Empty;
+    private IBrowserFile? SelectedFile;
+
+    // This method is called when a file is selected via MudFileUpload
+    private void HandleFilesChanged(IBrowserFile file)
+    {
+        SelectedFile = file;
+    }
 
     private async Task SubmitPost()
     {
@@ -35,15 +64,35 @@
             AuthorName = @AuthService.UserName
         };
 
-        var response = await Http.PostAsJsonAsync("http://localhost:5000/api/post", post);
+        using var content = new MultipartFormDataContent();
+
+        // Add text fields
+        content.Add(new StringContent(post.Title), "Title");
+        content.Add(new StringContent(post.Content), "Content");
+        // Ensure CreatedAt is formatted correctly for server-side parsing (ISO 8601)
+        content.Add(new StringContent(post.CreatedAt.ToString("o")), "CreatedAt");
+        content.Add(new StringContent(post.UserId), "UserId");
+        content.Add(new StringContent(post.AuthorName), "AuthorName");
+
+        // Add image file if selected
+        if (SelectedFile != null)
+        {
+            
+            var streamContent = new StreamContent(SelectedFile.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024)); // Example: 5 MB limit
+            streamContent.Headers.Add("Content-Disposition", $"form-data; name=\"imageFile\"; filename=\"{SelectedFile.Name}\"");
+            streamContent.Headers.Add("Content-Type", SelectedFile.ContentType);
+            content.Add(streamContent, "imageFile");
+        }
+
+        var response = await Http.PostAsync("http://localhost:5000/api/post", content);
         if (response.IsSuccessStatusCode)
         {
-            Navigation.NavigateTo("/post");
+            Navigation.NavigateTo("/post"); // Navigate to the page displaying posts
         }
         else
         {
-            Console.Error.WriteLine(await response.Content.ReadAsStringAsync());
+            Console.Error.WriteLine($"Error creating post: {await response.Content.ReadAsStringAsync()}");
+            // Optionally, provide user feedback about the error (e.g., using a MudSnackbar)
         }
     }
 }
-

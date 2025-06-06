@@ -5,6 +5,10 @@
 @inject NavigationManager Navigation
 
 <CascadingAuthenticationState>
+
+    @* <MudThemeProvider> *@
+        <MudDialogProvider />
+        <MudSnackbarProvider />
     <Router AppAssembly="@typeof(App).Assembly">
         <Found Context="routeData">
             @if (IsPublicRoute(Navigation.ToBaseRelativePath(Navigation.Uri)) || AuthService.IsLoggedIn)
@@ -22,6 +26,7 @@
             </LayoutView>
         </NotFound>
     </Router>
+     @* </MudThemeProvider> *@
 </CascadingAuthenticationState>
 
 @code {

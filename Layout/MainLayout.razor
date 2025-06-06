@@ -1,56 +1,78 @@
 ﻿@inherits LayoutComponentBase
+@using MudBlazor.Utilities
 @inject NavigationManager Navigation
 @using Blog_Web.Services
 @using MudBlazor
 @inject AuthService AuthService
 
+<MudThemeProvider />
+<MudDialogProvider /> 
+<MudSnackbarProvider />
+<MudPopoverProvider />
+
 <div class="layout-container">
-    <MudAppBar Color="Color.Primary" Fixed="false" Dense="false" Class="appbar">
-        <MudText Typo="Typo.h5" Class="brand">Medium</MudText>
-        <MudSpacer />
+    <div>
+        <MudAppBar  Fixed="false" Dense="false" Class="appbar">
+            <MudText Typo="Typo.h5" Class="brand">Medium</MudText>
+            <MudSpacer />
+            <MudText Typo="Typo.body1" Class="nav-link" @onclick="@(() => Navigation.NavigateTo("/home"))">Home</MudText>
+            <MudText Typo="Typo.body1" Class="nav-link" @onclick="@(()  => Navigation.NavigateTo("/blog"))" >Write</MudText>
+            <MudText Typo="Typo.body1" Class="nav-link" @onclick="@(()  => Navigation.NavigateTo("/post"))" >Posts</MudText>
+            @if (AuthService.IsLoggedIn)
+            {
+               <MudText Typo="Typo.body1" Class="nav-link">Hello, @AuthService.UserName</MudText>
 
-        <MudText Typo="Typo.body1" Class="nav-link" @onclick="@(() => Navigation.NavigateTo("/home"))">Home</MudText>
-        <MudText Typo="Typo.body1" Class="nav-link" @onclick="@(()  => Navigation.NavigateTo("/blog"))" >Write</MudText>
-        <MudText Typo="Typo.body1" Class="nav-link" @onclick="@(()  => Navigation.NavigateTo("/post"))" >Posts</MudText>
+<MudMenu OffsetY="true" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter">
+    <ChildContent >
+        <MudMenuItem OnClick="@NavigateToProfile">Profile</MudMenuItem>
+        <MudMenuItem OnClick="@Logout">Logout</MudMenuItem>
+    </ChildContent>
+    <ActivatorContent>
+        <MudAvatar  Class="cursor-pointer" Size="Size.Medium">
+            <MudImage Src="@AuthService.ProfileImage" Alt="Profile" />
+        </MudAvatar>
+    </ActivatorContent>
+</MudMenu>
 
 
-        @if (AuthService.IsLoggedIn)
-        {
-            <MudText Typo="Typo.body1" Class="nav-link">Hello, @AuthService.UserName</MudText>
-
-        }
-        else
-        {
-            <MudText Typo="Typo.body1" Class="nav-link" @onclick="@(() => Navigation.NavigateTo("/login"))">Sign in</MudText>
+            }
+            else
+            {
+                <MudText Typo="Typo.body1" Class="nav-link" @onclick="@(() => Navigation.NavigateTo("/login"))">Sign in</MudText>
+        <MudButton Variant="Variant.Filled" Color="Color.Dark" Style="background-color: black; color:white" Class="round-button px-6 py-2 rounded-pill" @onclick="@(() => Navigation.NavigateTo("/login"))" >
+                    Get started
+                </MudButton>
+            }
             
-        }
-        <MudButton Variant="Variant.Filled" Color="Color.Dark" Style="background-color: black; color:white" Class="round-button px-6 py-2 rounded-pill">
-                Get started
-            </MudButton>
-    </MudAppBar>
+        </MudAppBar>
+    </div>
 
     <main class="content">
-        @Body
-        @if(AuthService.IsLoggedIn)
-        {
-         <MudFab StartIcon="@Icons.Material.Filled.Create" Color="Color.Primary" Class="fab" OnClick="@(() => Navigation.NavigateTo("/blog"))" />
-        }
+        <div class="main-content">
+            @Body
+            @if(AuthService.IsLoggedIn)
+            {
+             <MudFab StartIcon="@Icons.Material.Filled.Create" Color="Color.Secondary" Class="fab" OnClick="@(() => Navigation.NavigateTo("/blog"))" />
+            }
+        </div>
     </main>
 
-    @if(!AuthService.IsLoggedIn){
-<MudAppBar  Bottom="true" Fixed="false" Dense="@dense" Class="appbar-b">
-        <MudText Typo="Typo.body1" Class="nav-link-b">Help</MudText>
-        <MudText Typo="Typo.body1" Class="nav-link-b">Status</MudText>
-        <MudText Typo="Typo.body1" Class="nav-link-b">About</MudText>
-        <MudText Typo="Typo.body1" Class="nav-link-b">Careers</MudText>
-        <MudText Typo="Typo.body1" Class="nav-link-b">Press</MudText>
-        <MudText Typo="Typo.body1" Class="nav-link-b">Blog</MudText>
-        <MudText Typo="Typo.body1" Class="nav-link-b">Privacy</MudText>
-        <MudText Typo="Typo.body1" Class="nav-link-b">Rules</MudText>
-        <MudText Typo="Typo.body1" Class="nav-link-b">Terms</MudText>
-        <MudText Typo="Typo.body1" Class="nav-link-b">Text To Speech</MudText>
-    </MudAppBar>
-    } 
+    <div>
+        @if(!AuthService.IsLoggedIn){
+        <MudAppBar  Bottom="true" Fixed="false" Dense="@dense" Class="appbar-b">
+            <MudText Typo="Typo.body1" Class="nav-link-b">Help</MudText>
+            <MudText Typo="Typo.body1" Class="nav-link-b">Status</MudText>
+            <MudText Typo="Typo.body1" Class="nav-link-b">About</MudText>
+            <MudText Typo="Typo.body1" Class="nav-link-b">Careers</MudText>
+            <MudText Typo="Typo.body1" Class="nav-link-b">Press</MudText>
+            <MudText Typo="Typo.body1" Class="nav-link-b">Blog</MudText>
+            <MudText Typo="Typo.body1" Class="nav-link-b">Privacy</MudText>
+            <MudText Typo="Typo.body1" Class="nav-link-b">Rules</MudText>
+            <MudText Typo="Typo.body1" Class="nav-link-b">Terms</MudText>
+            <MudText Typo="Typo.body1" Class="nav-link-b">Text To Speech</MudText>
+        </MudAppBar>
+        }
+    </div> 
      
 </div>
 
@@ -58,5 +80,16 @@
 
 @code {
     bool dense = false;
+    private void NavigateToProfile()
+{
+    Navigation.NavigateTo($"/profile/{AuthService.UserId}");
+}
+
+private void Logout()
+{
+    @* AuthService.Logout(); *@
+    Navigation.NavigateTo("/login", forceLoad: true);
+}
+
 }
 

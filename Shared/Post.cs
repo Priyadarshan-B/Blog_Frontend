@@ -7,6 +7,8 @@ public class Post
     public DateTime CreatedAt { get; set; }
     public string UserId { get; set; } = string.Empty;
     public string AuthorName { get; set; } = string.Empty;
+
+    public string Preference { get; set; } = string.Empty;
     public int Likes { get; set; }
     public int CommentCount { get; set; }
 }

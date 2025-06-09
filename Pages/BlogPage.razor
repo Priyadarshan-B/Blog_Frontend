@@ -12,7 +12,7 @@
     }
     else
     {
-        <MudPaper Class="p-4 post-container" Elevation="1">
+        <MudPaper Class="p-4 post-container" Elevation="1" Style="padding: 20px; border-radius: 8px;">
             @if (!string.IsNullOrEmpty(post.ImageUrl))
             {
                 <img src="@post.ImageUrl" alt="Post Image" class="post-image" />
@@ -62,11 +62,11 @@
 
     protected override async Task OnInitializedAsync()
     {
-        post = await Http.GetFromJsonAsync<Post>($"http://localhost:5000/api/post/{PostId}");
-        comments = await Http.GetFromJsonAsync<List<Comment>>($"http://localhost:5000/api/post/{PostId}/comments");
+        post = await Http.GetFromJsonAsync<Post>($"/api/post/{PostId}");
+        comments = await Http.GetFromJsonAsync<List<Comment>>($"/api/post/{PostId}/comments");
 
         var followResponse = await Http.GetFromJsonAsync<FollowResponse>(
-        $"http://localhost:5000/api/follower/isfollowing?followerId={AuthService.UserId}&followingId={post.UserId}");
+        $"/api/follower/isfollowing?followerId={AuthService.UserId}&followingId={post.UserId}");
 
         isFollowing = followResponse?.IsFollowing ?? false;
     }
@@ -76,13 +76,13 @@
         if (isFollowing)
         {
             await
-            Http.PostAsync($"http://localhost:5000/api/follower/unfollow?followerId={AuthService.UserId}&followingId={post.UserId}",
+            Http.PostAsync($"/api/follower/unfollow?followerId={AuthService.UserId}&followingId={post.UserId}",
             null);
         }
         else
         {
             await
-            Http.PostAsync($"http://localhost:5000/api/follower/follow?followerId={AuthService.UserId}&followingId={post.UserId}",
+            Http.PostAsync($"/api/follower/follow?followerId={AuthService.UserId}&followingId={post.UserId}",
             null);
         }
 
@@ -91,7 +91,7 @@
 
     private async Task LikePost()
     {
-        await Http.PostAsync($"http://localhost:5000/api/post/{PostId}/like", null);
+        await Http.PostAsync($"/api/post/{PostId}/like", null);
         post.Likes++;
     }
 
@@ -105,11 +105,11 @@
             Content = newComment
         };
 
-        var response = await Http.PostAsJsonAsync($"http://localhost:5000/api/post/{PostId}/comments", commentObj);
+        var response = await Http.PostAsJsonAsync($"/api/post/{PostId}/comments", commentObj);
         if (response.IsSuccessStatusCode)
         {
             newComment = string.Empty;
-            comments = await Http.GetFromJsonAsync<List<Comment>>($"http://localhost:5000/api/post/{PostId}/comments");
+            comments = await Http.GetFromJsonAsync<List<Comment>>($"/api/post/{PostId}/comments");
             post.CommentCount = comments.Count;
         }
     }

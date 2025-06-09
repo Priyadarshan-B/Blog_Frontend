@@ -3,6 +3,8 @@
 @using System.Text
 @using System.Text.Json
 @using System.Net.Http.Headers
+@inject AppConfiguration AppConfig
+
 @inject NavigationManager Navigation
 @using Blog_Web.Services
 @using Blog_Web.Shared
@@ -33,6 +35,22 @@
                   Required="true"
                   RequiredError="Content is required!" />
 
+<MudSelect T="string"
+           Label="Select Preference"
+           @bind-Value="SelectedPreference"
+           Variant="Variant.Outlined"
+           Required="true"
+           RequiredError="Preference is required!"
+           Class="mt-4"
+           FullWidth="true">
+    @if (Preferences != null)
+    {
+        @foreach (var pref in Preferences)
+        {
+            <MudSelectItem Value="@pref.Topic">@pref.Topic</MudSelectItem>
+        }
+    }
+</MudSelect>
     <MudDivider Class="my-4" />
 
     <MudText Typo="Typo.subtitle1" GutterBottom="true">Upload Image</MudText>
@@ -70,10 +88,13 @@
 </MudPaper>
 
 @code {
+
     private string Title = string.Empty;
     private string Content = string.Empty;
     private IBrowserFile? SelectedFile;
     private string? PreviewUrl;
+    private string? SelectedPreference;
+private List<Preference> Preferences = new();
 
     private async Task HandleFileSelectedMud(IBrowserFile file)
     {
@@ -130,6 +151,13 @@
         {
             content.Add(new StringContent(AuthService.UserName), "AuthorName");
         }
+        if (string.IsNullOrWhiteSpace(SelectedPreference))
+{
+    Snackbar.Add("Please select a preference/topic.", Severity.Warning);
+    return;
+}
+content.Add(new StringContent(SelectedPreference), "Preference");
+
 
 
         if (SelectedFile != null)
@@ -156,7 +184,7 @@
             }
         }
 
-        var apiUrl = "http://localhost:5000/api/post";
+        var apiUrl = "/api/post";
 
         try
         {
@@ -185,4 +213,21 @@
             Console.Error.WriteLine($"Unexpected error: {ex.Message}");
         }
     }
+    protected override async Task OnInitializedAsync()
+{
+    await LoadPreferences();
+}
+
+private async Task LoadPreferences()
+{
+    try
+    {
+        Preferences = await Http.GetFromJsonAsync<List<Preference>>("/api/preferences") ?? new();
+    }
+    catch (Exception ex)
+    {
+        Snackbar.Add("Failed to load preferences.", Severity.Error);
+        Console.Error.WriteLine($"Error loading preferences: {ex.Message}");
+    }
+    } 
 }

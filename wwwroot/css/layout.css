@@ -18,8 +18,11 @@
     justify-content: center; 
     align-items: center;     
     flex-wrap: wrap;        
-    gap: 1rem;               
-    padding: 1rem;     
+    gap: 1.5rem;               
+    /* padding: 1rem;  */
+    color: black;
+    background-color: #fdfaf6;
+
 }
 .fab {
     position: fixed;

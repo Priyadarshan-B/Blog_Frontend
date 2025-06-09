@@ -1,5 +1,7 @@
-.post-container {
-    padding: 1rem;
+.page-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
 }
 
 .post-list {
@@ -10,55 +12,99 @@
 
 .post-card {
     display: flex;
-    justify-content: space-between;
-    padding: 16px;
-    background-color: white;
-    padding: 10px;
-    border-radius: 10px;
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    padding: 1rem 1.25rem;
     border-radius: 12px;
-    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transition: 0.2s ease-in-out;
+}
+
+.post-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+}
+
+.post-left {
+    flex: 1;
+    padding-right: 1rem;
+}
+
+.post-title {
+    font-weight: 700;
+    font-size: 1.25rem;
+    margin-bottom: 0.25rem;
+}
+
+.post-img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.post-right {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.post-meta {
+    font-size: 0.875rem;
+    color: #f06292;
+    margin-bottom: 0.5rem;
 }
 
 .post-actions {
     display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-top: 12px;
+    gap: 1.5rem;
+    margin-top: 1rem;
 }
 
-.comment-section {
-    margin-top: 10px;
-    border-top: 1px solid #ccc;
-    padding-top: 10px;
-}
-
-.comment {
-    padding: 5px 0;
-}
-
-
-.post-left {
-    flex: 1;
-    margin-right: 1rem;
-}
-
-.post-title {
-    font-weight: bold;
-    margin-bottom: 0.5rem;
-}
-
-.post-right img {
-    width: 100px;
-    height: 100px;
-    object-fit: cover;
-    border-radius: 8px;
-}
-
-.comment-text{
-    font-size: 12px;
-}
-
-.comment-actions{
+.comment-actions {
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    color: #757575;
+}
+
+.comment-text {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.suggestions-card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.suggestions-card h6 {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+@media (max-width: 900px) {
+    .page-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .post-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .post-img {
+        width: 100%;
+        height: auto;
+        margin-top: 1rem;
+    }
+
+    .post-right {
+        align-self: stretch;
+        justify-content: flex-start;
+    }
 }

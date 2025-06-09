@@ -1,18 +1,23 @@
 @page "/login"
 @using System.Text.Json.Serialization
-
+@using Blog_Web.Services
 @inject HttpClient Http
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
 
 
-<h3>Login with Google</h3>
 
-<div id="googleSignInBtn"></div>
+<div class="login-container">
+    <MudText Typo="Typo.h4" Class="mb-4">Login to Your Account</MudText>
+    <MudText Typo="Typo.body1" Class="mb-4">
+        Use your Google account to sign in and start sharing your stories.
+    </MudText>
+        
+    <div id="googleSignInBtn"></div>
+</div>
 
 @code {
     private DotNetObjectReference<Login>? objRef;
-    private const string ApiHost = "http://localhost:5000";
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -28,7 +33,7 @@
     public async Task OnGoogleLogin(string idToken)
     {
         var reqpayload = new { IdToken = idToken };
-        var response = await Http.PostAsJsonAsync($"{ApiHost}/api/auth/google", reqpayload);
+        var response = await Http.PostAsJsonAsync("/api/auth/google", reqpayload);
 
         if (response.IsSuccessStatusCode)
         {

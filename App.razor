@@ -1,41 +1,65 @@
 ﻿@using Blog_Web.Services
-@* @using Microsoft.AspNetCore.Components.Authorization *@
+@* @using Microsoft.AspNetCore.Components.Authorization *@@* Keep this commented if you're not using standard Blazor Auth *@
 
 @inject AuthService AuthService
 @inject NavigationManager Navigation
 
-<CascadingAuthenticationState>
+<CascadingAuthenticationState> @* This component is typically used with a custom AuthenticationStateProvider. If AuthService doesn't implement it, this might be decorative here. *@
 
-    @* <MudThemeProvider> *@
-        <MudDialogProvider />
-        <MudSnackbarProvider />
-    <Router AppAssembly="@typeof(App).Assembly">
-        <Found Context="routeData">
-            @if (IsPublicRoute(Navigation.ToBaseRelativePath(Navigation.Uri)) || AuthService.IsLoggedIn)
-            {
-                <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
-            }
-            else
-            {
-                Navigation.NavigateTo("/login", true);
-            }
-        </Found>
-        <NotFound>
-            <LayoutView Layout="@typeof(MainLayout)">
-                <p>Sorry, there's nothing here!</p>
-            </LayoutView>
-        </NotFound>
-    </Router>
-     @* </MudThemeProvider> *@
+    <MudDialogProvider />
+    <MudSnackbarProvider />
+
+    @if (_isAuthServiceInitialized) // Only render the Router after AuthService has initialized
+    {
+        <Router AppAssembly="@typeof(App).Assembly">
+            <Found Context="routeData">
+                @if (IsPublicRoute(Navigation.ToBaseRelativePath(Navigation.Uri)) || AuthService.IsLoggedIn)
+                {
+                    <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+                }
+                else
+                {
+                    // Redirect to login if not public route and not logged in
+                    Navigation.NavigateTo("/login", true);
+                }
+            </Found>
+            <NotFound>
+                <LayoutView Layout="@typeof(MainLayout)">
+                    <p>Sorry, there's nothing here!</p>
+                </LayoutView>
+            </NotFound>
+        </Router>
+    }
+    else
+    {
+        // Show a loading indicator while the authentication state is being determined
+        <div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+            <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+            <MudText Class="ml-2">Loading authentication state...</MudText>
+        </div>
+    }
 </CascadingAuthenticationState>
 
 @code {
+    private bool _isAuthServiceInitialized = false;
+
     protected override async Task OnInitializedAsync()
     {
-        await AuthService.InitializeAsync();
+        // Subscribe to auth state changes to re-render App.razor if needed
+        AuthService.OnAuthStateChanged += StateHasChanged;
+
+        await AuthService.InitializeAsync(); // This populates UserId and other properties
+        _isAuthServiceInitialized = true; // Mark as initialized once done
+    }
+
+    // Implement IDisposable to unsubscribe from events and prevent memory leaks
+    public void Dispose()
+    {
+        AuthService.OnAuthStateChanged -= StateHasChanged;
     }
 
     private bool IsPublicRoute(string route) =>
+        route.Equals("", StringComparison.OrdinalIgnoreCase) || // Handles the root URL "/"
         route.Equals("home", StringComparison.OrdinalIgnoreCase) ||
-        route.Equals("login", StringComparison.OrdinalIgnoreCase);
+        route.Equals("login", StringComparison.OrdinalIgnoreCase) ;// e.g., viewing a specific blog page
 }

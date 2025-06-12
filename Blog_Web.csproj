@@ -17,6 +17,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.15" PrivateAssets="all" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.5" />
     <PackageReference Include="MudBlazor" Version="8.7.0" />
+    <PackageReference Include="Syncfusion.Blazor.RichTextEditor" Version="29.2.9" />
     
   </ItemGroup>
 

@@ -8,7 +8,7 @@ public class Post
     public string UserId { get; set; } = string.Empty;
     public string AuthorName { get; set; } = string.Empty;
 
-    public string Preference { get; set; } = string.Empty;
+    public List<string> Preferences { get; set; } = new List<string>();
     public int Likes { get; set; }
     public int CommentCount { get; set; }
 }

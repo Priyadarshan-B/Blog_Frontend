@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
 using System.Text.Json;
 using Blazored.LocalStorage;
+using Syncfusion.Blazor;
+
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
@@ -13,6 +15,8 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddMudServices();
 builder.Services.AddBlazoredLocalStorage();
+builder.Services.AddSyncfusionBlazor();
+
 
 // builder.Services.AddAuthorizationCore();
 builder.Services.AddScoped<AuthService>();

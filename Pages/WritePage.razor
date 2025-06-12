@@ -1,8 +1,11 @@
 @page "/blog"
 @inject HttpClient Http
+@inject IJSRuntime JS
+
 @using System.Text
 @using System.Text.Json
 @using System.Net.Http.Headers
+
 @inject AppConfiguration AppConfig
 
 @inject NavigationManager Navigation
@@ -25,7 +28,11 @@
                   Required="true"
                   RequiredError="Title is required!" />
 
-    <MudTextField @bind-Value="Content"
+<MudText Typo="Typo.subtitle1" Class="mt-4">Content</MudText>
+
+<div id="editor" style="height: 300px; margin-top: 10px; padding: 10px; border-radius: 5px;"></div>
+
+    @* <MudTextField @bind-Value="Content"
                   Label="Content"
                   Variant="Variant.Outlined"
                   FullWidth="true"
@@ -33,7 +40,7 @@
                   TextArea="true"
                   Class="mt-4"
                   Required="true"
-                  RequiredError="Content is required!" />
+                  RequiredError="Content is required!" /> *@
 
 <MudSelect T="string"
            Label="Select Preference"
@@ -95,6 +102,15 @@
     private string? PreviewUrl;
     private string? SelectedPreference;
 private List<Preference> Preferences = new();
+    private string HtmlContent = "";
+
+protected override async Task OnAfterRenderAsync(bool firstRender)
+{
+    if (firstRender)
+    {
+        await JS.InvokeVoidAsync("quillEditor.init");
+    }
+}
 
     private async Task HandleFileSelectedMud(IBrowserFile file)
     {
@@ -127,21 +143,25 @@ private List<Preference> Preferences = new();
 
     private async Task SubmitPost()
     {
+            HtmlContent = await JS.InvokeAsync<string>("quillEditor.getContent");
+
+        
         if (string.IsNullOrWhiteSpace(Title))
         {
             Snackbar.Add("Title is required!", Severity.Warning);
             return;
         }
-        if (string.IsNullOrWhiteSpace(Content))
-        {
-            Snackbar.Add("Content is required!", Severity.Warning);
-            return;
-        }
+
+           if (string.IsNullOrWhiteSpace(HtmlContent) || HtmlContent == "<p><br></p>")
+    {
+        Snackbar.Add("Content is required!", Severity.Warning);
+        return;
+    }
 
         var content = new MultipartFormDataContent();
 
         content.Add(new StringContent(Title), "Title");
-        content.Add(new StringContent(Content), "Content");
+        content.Add(new StringContent(HtmlContent), "Content");
 
         if (!string.IsNullOrWhiteSpace(AuthService.UserId))
         {
@@ -156,8 +176,8 @@ private List<Preference> Preferences = new();
     Snackbar.Add("Please select a preference/topic.", Severity.Warning);
     return;
 }
-content.Add(new StringContent(SelectedPreference), "Preference");
-
+var preferencesJson = JsonSerializer.Serialize(new List<string> { SelectedPreference });
+content.Add(new StringContent(preferencesJson, Encoding.UTF8, "application/json"), "Preferences");
 
 
         if (SelectedFile != null)

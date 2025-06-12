@@ -17,7 +17,10 @@
     
     <!-- MudBlazor CSS -->
     <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
-    
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/quill-image-resize-module@3.0.0/image-resize.min.js"></script> -->
+
     <!-- Custom styles -->
     <link href="css/app.css" rel="stylesheet" />
     <link href="Blog_Web.styles.css" rel="stylesheet" />
@@ -69,8 +72,52 @@
         google.accounts.id.prompt();
     }
 };
-
 </script>
+<!-- Text editor -->
+<script>
+    var quill;
+    // var Link = Quill.import('formats/link');
+    // Link.sanitize = function (url) {
+    //     if (!/^https?:\/\//i.test(url)) {
+    //         return 'https://' + url;
+    //     }
+    //     return url;
+    // };
+    // Quill.register(Link, true);
+    // Quill.register('modules/imageResize', window.ImageResize);
+    // Quill.register('modules/toolbar', true);
+    // Quill.register('modules/clipboard', true);
+    // Quill.register('modules/keyboard', true);
+
+
+    window.quillEditor = {
+        init: function () {
+            quill = new Quill('#editor', {
+                theme: 'snow',
+                modules: {
+                    toolbar: [
+                        [{ 'header': [1, 2, 3,4,5,6, false] }],
+                         [{ 'font': [] }],
+  [{ 'align': [] }],
+                        ['bold', 'italic', 'underline','strike'],
+                        ['link', 'image', 'formula'],
+                        [{ 'indent': '-1'}, { 'indent': '+1' }],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' },{ 'list': 'check' }, { 'list': 'ordered' }],
+                        [{ 'color': [] }, { 'background': [] }],
+                        ['clean']
+                    ]
+                }
+            });
+        },
+        getContent: function () {
+            return quill.root.innerHTML;
+        },
+        setContent: function (html) {
+            quill.root.innerHTML = html;
+        }
+    };
+</script>
+<!-- jwt decoder -->
 <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
 <script>
     window.decodeJwt = function (token) {
@@ -83,8 +130,6 @@
     };
 </script>
 
-    <!-- Custom Google login logic -->
-    <!-- <script src="js/auth.js"></script> -->
 </body>
 
 </html>

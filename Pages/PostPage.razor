@@ -3,10 +3,13 @@
 @inject NavigationManager Navigation
 @inject AuthService AuthService
 @inject AppConfiguration AppConfig
+@inject IDialogService DialogService
+
 
 @using Blog_Web.Services
 @using Blog_Web.Shared
-
+@using System.Text
+<MudFab StartIcon="@Icons.Material.Filled.ChatBubble" Color="Color.Secondary" Class="chat" OnClick="ToggleChat" />
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
     <MudText Typo="Typo.h4" GutterBottom="true">For You</MudText>
 
@@ -61,10 +64,36 @@
         </div>
     </div>
 </MudContainer>
+@* chat bot *@
+<MudPopover Open="_isOpen" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft">
+    <MudPaper Class="chat-box" Style="width: 300px; padding: 16px;">
+        <MudText Typo="Typo.h6" GutterBottom="true">ChatBot Assistant</MudText>
+
+        <MudPaper Class="chat-messages" Style="max-height: 200px; overflow-y: auto; background: #f8f8f8; padding: 8px; margin-bottom: 8px;">
+            @foreach (var message in messages)
+            {
+                <MudText Typo="Typo.body2">@message</MudText>
+            }
+
+            @if (isLoading)
+            {
+                <MudProgressCircular Size="Size.Small" Color="Color.Primary" Class="d-block mx-auto mt-2" />
+            }
+        </MudPaper>
+
+        <MudTextField @bind-Value="inputText" Placeholder="Ask something..." FullWidth="true" />
+        <MudButton OnClick="SendMessage" Color="Color.Primary" Class="mt-2" FullWidth="true">Send</MudButton>
+    </MudPaper>
+</MudPopover>
+
 
 
 @code {
     private List<Post>? posts;
+    private bool _isOpen = false;
+    private string inputText = string.Empty;
+    private List<string> messages = new();
+        private bool isLoading = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -89,5 +118,54 @@
     private void NavigateToBlog(string postId)
     {
         Navigation.NavigateTo($"/blogpage/{postId}");
+    }
+void ToggleChat()
+    {
+        _isOpen = !_isOpen;
+    }
+
+    async Task SendMessage()
+{
+    if (string.IsNullOrWhiteSpace(inputText)) return;
+
+    messages.Add("You: " + inputText);
+    isLoading = true;
+
+    try
+    {
+       var jsonText = $"{{ \"query\": \"{inputText}\" }}";
+
+        var content = new StringContent(jsonText, Encoding.UTF8, "text/plain");
+
+        var response = await Http.PostAsync("http://localhost:5182/Search/search", content);
+
+
+        if (response.IsSuccessStatusCode)
+        {
+            var json = await response.Content.ReadFromJsonAsync<SummaryResponse>();
+            if (json?.summary != null)
+                messages.Add("Bot: " + json.summary);
+            else
+                messages.Add("Bot: No summary found.");
+        }
+        else
+        {
+            messages.Add("Bot: Something went wrong.");
+        }
+    }
+    catch (Exception ex)
+    {
+        messages.Add("Bot: Error occurred.");
+        Console.WriteLine(ex.Message);
+    }
+
+    inputText = string.Empty;
+    isLoading = false;
+}
+
+
+    public class SummaryResponse
+    {
+        public string summary { get; set; }
     }
 }

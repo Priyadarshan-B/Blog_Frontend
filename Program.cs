@@ -22,7 +22,7 @@ builder.Services.AddSyncfusionBlazor();
 builder.Services.AddScoped<AuthService>();
 
 // Load environment-specific appsettings
-var environment = builder.HostEnvironment.Environment; // "Development" or "Production"
+var environment = builder.HostEnvironment.Environment; 
 var configFileName = $"appsettings.{environment}.json";
 
 var tempHttpClient = new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) };

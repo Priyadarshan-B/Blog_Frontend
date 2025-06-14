@@ -53,6 +53,7 @@
             @if(AuthService.IsLoggedIn)
             {
              <MudFab StartIcon="@Icons.Material.Filled.Create" Color="Color.Secondary" Class="fab" OnClick="@(() => Navigation.NavigateTo("/blog"))" />
+             @* <MudFab StartIcon="@Icons.Material.Filled.ChatBubble" Color="Color.Secondary" Class="chat" /> *@
             }
         </div>
     </main>

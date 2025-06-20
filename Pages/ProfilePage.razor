@@ -1,0 +1,143 @@
+@page "/profile"
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+@inject AuthService AuthService
+
+@using System.Net.Http.Json
+@using Blog_Web.Services
+@using MudBlazor
+
+<MudPaper Class="profile-container" Elevation="3">
+    <div class="profile-header">
+        <MudText Typo="Typo.h4">My Profile</MudText>
+        <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" OnClick="@ToggleEdit" />
+    </div>
+
+    <MudDivider Class="my-2" />
+
+    <div class="profile-content">
+        <div class="avatar-wrapper">
+            <MudAvatar Class="profile-avatar" Src="@user.PictureUrl" Alt="Profile Image" Size="Size.Large" />
+            <label class="avatar-edit-btn">
+                <MudIcon Icon="@Icons.Material.Filled.Edit" />
+                <InputFile style="display:none" OnChange="OnImageSelected" />
+            </label>
+        </div>
+
+        <div class="profile-details">
+            @if (isEditing)
+            {
+                <MudTextField @bind-Value="editUser.DisplayName" Label="Display Name" Class="mb-2" />
+                <MudTextField @bind-Value="editUser.Email" Label="Email" Class="mb-2" />
+                <div class="edit-actions">
+                    <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="UpdateProfile" Disabled="@isSaving">Save</MudButton>
+                    <MudButton Variant="Variant.Outlined" OnClick="CancelEdit" Class="ml-2">Cancel</MudButton>
+                </div>
+            }
+            else
+            {
+                <MudText Typo="Typo.subtitle1"><b>Name:</b> @user.DisplayName</MudText>
+                <MudText Typo="Typo.subtitle1"><b>Email:</b> @user.Email</MudText>
+            }
+        </div>
+    </div>
+</MudPaper>
+
+@code {
+    private UserProfile user = new();
+    private UserProfile editUser = new();
+    private bool isSaving = false;
+    private bool isEditing = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = AuthService.UserId;
+        user = await Http.GetFromJsonAsync<UserProfile>($"http://localhost:5000/api/User/{userId}");
+        editUser = CloneUser(user);
+    }
+
+    private void ToggleEdit()
+    {
+        editUser = CloneUser(user);
+        isEditing = true;
+    }
+
+    private void CancelEdit()
+    {
+        editUser = CloneUser(user);
+        isEditing = false;
+    }
+
+    private async Task UpdateProfile()
+    {
+        var payload = new Dictionary<string, string>();
+
+        if (editUser.DisplayName != user.DisplayName)
+            payload["displayName"] = editUser.DisplayName;
+
+        if (editUser.Email != user.Email)
+            payload["email"] = editUser.Email;
+
+        if (editUser.PictureUrl != user.PictureUrl)
+            payload["pictureUrl"] = editUser.PictureUrl;
+
+        if (payload.Count == 0)
+        {
+            Snackbar.Add("No changes to update.", Severity.Info);
+            return;
+        }
+
+        isSaving = true;
+
+        var request = new HttpRequestMessage(HttpMethod.Patch, $"http://localhost:5000/api/User/{user.Id}")
+        {
+            Content = JsonContent.Create(payload)
+        };
+
+        var response = await Http.SendAsync(request);
+        isSaving = false;
+
+        if (response.IsSuccessStatusCode)
+        {
+            Snackbar.Add("Profile updated.", Severity.Success);
+            user = CloneUser(editUser);
+            isEditing = false;
+        }
+        else
+        {
+            Snackbar.Add("Update failed.", Severity.Error);
+        }
+    }
+
+    private async Task OnImageSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            var buffer = new byte[file.Size];
+            await file.OpenReadStream().ReadAsync(buffer);
+
+            // You can upload it to your backend or convert to base64:
+            var base64Image = $"data:{file.ContentType};base64,{Convert.ToBase64String(buffer)}";
+
+            editUser.PictureUrl = base64Image;
+            user.PictureUrl = base64Image; // Optional: show instantly
+        }
+    }
+
+    private UserProfile CloneUser(UserProfile u) => new()
+    {
+        Id = u.Id,
+        Email = u.Email,
+        DisplayName = u.DisplayName,
+        PictureUrl = u.PictureUrl
+    };
+
+    public class UserProfile
+    {
+        public string Id { get; set; }
+        public string Email { get; set; }
+        public string DisplayName { get; set; }
+        public string PictureUrl { get; set; }
+    }
+}

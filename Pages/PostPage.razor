@@ -9,7 +9,8 @@
 @using Blog_Web.Services
 @using Blog_Web.Shared
 @using System.Text
-<MudFab StartIcon="@Icons.Material.Filled.ChatBubble" Color="Color.Secondary" Class="chat" OnClick="ToggleChat" />
+<MudFab StartIcon="@Icons.Material.Filled.ChatBubble" Color="Color.Secondary" Class="chat-button"
+    OnClick="ToggleChat" />
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
     <MudText Typo="Typo.h4" GutterBottom="true">For You</MudText>
 
@@ -32,20 +33,21 @@
                             <MudText Typo="Typo.h6" Class="post-title">@post.Title</MudText>
                             <MudText Class="post-meta">@post.AuthorName - @post.CreatedAt.ToLocalTime().ToString("g")</MudText>
                             <MudText Typo="Typo.body1">
-                                @((MarkupString)(post.Content.Length > 120 ? post.Content.Substring(0, 120) + "..." : post.Content))
-                            </MudText>
-                            <div class="post-actions">
-                                <div class="comment-actions">
-                                    <MudIcon Icon="@Icons.Material.Filled.ThumbUp" />
-                                    <MudText Class="comment-text">@post.Likes Likes</MudText>
-                                </div>
-                                <div class="comment-actions">
-                                    <MudIcon Icon="@Icons.Material.Filled.Comment" />
-                                    <MudText Class="comment-text">@post.CommentCount Comments</MudText>
-                                </div>
-                            </div>
+                                @((MarkupString)(post.Content.Length > 120 ? post.Content.Substring(0, 120) + "..." :
+                                                        post.Content))
+                    </MudText>
+                    <div class="post-actions">
+                        <div class="comment-actions">
+                            <MudIcon Icon="@Icons.Material.Filled.ThumbUp" />
+                            <MudText Class="comment-text">@post.Likes Likes</MudText>
                         </div>
-                        @if (!string.IsNullOrEmpty(post.ImageUrl))
+                        <div class="comment-actions">
+                            <MudIcon Icon="@Icons.Material.Filled.Comment" />
+                            <MudText Class="comment-text">@post.CommentCount Comments</MudText>
+                        </div>
+                    </div>
+                </div>
+                @if (!string.IsNullOrEmpty(post.ImageUrl))
                         {
                             <div class="post-right">
                                 <img src="@post.ImageUrl" alt="Post Image" class="post-img" />
@@ -59,32 +61,46 @@
         <div class="suggestions-card">
             <MudText Typo="Typo.h6">Suggestions</MudText>
             <MudText Typo="Typo.body2">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque vitae sapien ut turpis commodo convallis. Sed non nibh ut erat.
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque vitae sapien ut turpis commodo
+                convallis. Sed non nibh ut erat.
             </MudText>
         </div>
     </div>
 </MudContainer>
 @* chat bot *@
-<MudPopover Open="_isOpen" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft">
-    <MudPaper Class="chat-box" Style="width: 300px; padding: 16px;">
+<MudPopover Open="_isOpen" class="chat" OverflowBehavior="OverflowBehavior.FlipAlways" AnchorOrigin="Origin.CenterLeft"
+    TransformOrigin="Origin.TopCenter">
+    <MudPaper Class="chat-box">
         <MudText Typo="Typo.h6" GutterBottom="true">ChatBot Assistant</MudText>
 
-        <MudPaper Class="chat-messages" Style="max-height: 200px; overflow-y: auto; background: #f8f8f8; padding: 8px; margin-bottom: 8px;">
-            @foreach (var message in messages)
-            {
-                <MudText Typo="Typo.body2">@message</MudText>
-            }
+        <div class="chat-body">
+            <div class="chat-messages">
+                @foreach (var message in messages)
+                {
+                    <div class="chat-message">
+                        <MudText Typo="Typo.body2">@message</MudText>
+                    </div>
+                }
 
-            @if (isLoading)
-            {
-                <MudProgressCircular Size="Size.Small" Color="Color.Primary" Class="d-block mx-auto mt-2" />
-            }
-        </MudPaper>
+                @if (isLoading)
+                {
+                    <div class="chat-message bot-thinking d-flex align-items-center gap-2">
+                        <MudProgressCircular Size="Size.Small" Color="Color.Primary" Indeterminate="true" />
+                        <MudText Typo="Typo.body2" Color="Color.Secondary"><em>@currentLoadingMessage</em></MudText>
+                    </div>
+                }
 
-        <MudTextField @bind-Value="inputText" Placeholder="Ask something..." FullWidth="true" />
-        <MudButton OnClick="SendMessage" Color="Color.Primary" Class="mt-2" FullWidth="true">Send</MudButton>
+            </div>
+
+            <div class="chat-input">
+                <MudTextField @bind-Value="inputText" Placeholder="Ask something..." FullWidth="true" />
+                <MudFab Color="Color.Success" OnClick="SendMessage" Size="Size.Medium"
+                    StartIcon="@Icons.Material.Filled.Send" />
+            </div>
+        </div>
     </MudPaper>
 </MudPopover>
+
 
 
 
@@ -93,16 +109,16 @@
     private bool _isOpen = false;
     private string inputText = string.Empty;
     private List<string> messages = new();
-        private bool isLoading = false;
+    private bool isLoading = false;
 
     protected override async Task OnInitializedAsync()
     {
-       
-            await RefreshPosts();
-        
+
+        await RefreshPosts();
+
     }
 
-     private async Task RefreshPosts()
+    private async Task RefreshPosts()
     {
         try
         {
@@ -119,50 +135,85 @@
     {
         Navigation.NavigateTo($"/blogpage/{postId}");
     }
-void ToggleChat()
+    void ToggleChat()
     {
         _isOpen = !_isOpen;
     }
-
-    async Task SendMessage()
+    private List<string> loadingMessages = new()
 {
-    if (string.IsNullOrWhiteSpace(inputText)) return;
+"Bot is thinking...",
+"Please wait...",
+"Generating response...",
+"Analyzing your question...",
+"Almost there..."
+};
 
-    messages.Add("You: " + inputText);
-    isLoading = true;
-
-    try
+    private string currentLoadingMessage = "Bot is thinking...";
+    private System.Timers.Timer loadingMessageTimer;
+    private int loadingIndex = 0;
+    async Task SendMessage()
     {
-       var jsonText = $"{{ \"query\": \"{inputText}\" }}";
+        if (string.IsNullOrWhiteSpace(inputText)) return;
 
-        var content = new StringContent(jsonText, Encoding.UTF8, "text/plain");
+        messages.Add("You: " + inputText);
+        inputText = string.Empty;
 
-        var response = await Http.PostAsync("http://localhost:5182/Search/search", content);
+        StartLoadingAnimation();
 
-
-        if (response.IsSuccessStatusCode)
+        try
         {
-            var json = await response.Content.ReadFromJsonAsync<SummaryResponse>();
-            if (json?.summary != null)
-                messages.Add("Bot: " + json.summary);
+            var payload = new { query = inputText };
+            var json = System.Text.Json.JsonSerializer.Serialize(payload);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await Http.PostAsync("http://localhost:5182/Search/search", content);
+            Console.WriteLine($"Response Status: {response}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<SummaryResponse>();
+                if (result?.summary != null)
+                    messages.Add("Bot: " + result.summary);
+                else
+                    messages.Add("Bot: No summary found.");
+            }
             else
-                messages.Add("Bot: No summary found.");
+            {
+                messages.Add("Bot: Something went wrong.");
+            }
         }
-        else
+        catch (Exception ex)
         {
-            messages.Add("Bot: Something went wrong.");
+            messages.Add("Bot: Error occurred.");
+            Console.WriteLine(ex.Message);
         }
+
+        StopLoadingAnimation();
     }
-    catch (Exception ex)
+
+    void StartLoadingAnimation()
     {
-        messages.Add("Bot: Error occurred.");
-        Console.WriteLine(ex.Message);
+        isLoading = true;
+        loadingIndex = 0;
+        currentLoadingMessage = loadingMessages[loadingIndex];
+
+        loadingMessageTimer = new System.Timers.Timer(1000);
+        loadingMessageTimer.Elapsed += (sender, args) =>
+        {
+            loadingIndex = (loadingIndex + 1) % loadingMessages.Count;
+            currentLoadingMessage = loadingMessages[loadingIndex];
+            InvokeAsync(StateHasChanged);
+        };
+        loadingMessageTimer.Start();
     }
 
-    inputText = string.Empty;
-    isLoading = false;
-}
-
+    void StopLoadingAnimation()
+    {
+        isLoading = false;
+        loadingMessageTimer?.Stop();
+        loadingMessageTimer?.Dispose();
+        loadingMessageTimer = null;
+    }
 
     public class SummaryResponse
     {

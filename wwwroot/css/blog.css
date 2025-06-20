@@ -4,31 +4,67 @@
 
 .post-container {
     border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    background-color: #ffffff;
 }
 
 .post-image {
     width: 100%;
     height: auto;
-    max-height: 500px;
-    /* object-fit: cover; */
-    border-radius: 12px;
-    margin-bottom: 20px;
+    border-radius: 10px;
+    object-fit: cover;
+    max-height: 400px;
 }
 
-.comment-section {
-    border-top: 1px solid #ddd;
-    padding-top: 15px;
+.post-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.follow-pill {
+    background-color: #1976d2;
+    color: white;
+    padding: 6px 16px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.follow-pill:hover {
+    background-color: #115293;
+}
+
+.post-content {
+    line-height: 1.6;
+    font-size: 16px;
+}
+
+.interaction-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 .comment {
-    padding: 8px;
-    background-color: #f5f5f5;
-    border-radius: 6px;
+    background-color: #f9f9f9;
+    padding: 8px 12px;
+    border-radius: 8px;
 }
+
 
 .loader-center {
     display: flex;
     justify-content: center;
     margin-top: 20px;
+}
+
+.loader-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%; 
+    width: 100%;
 }

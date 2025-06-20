@@ -8,48 +8,59 @@
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4 blogpage-container" Style="padding: 20px;">
     @if (post == null)
     {
-        <MudProgressCircular Indeterminate="true" />
+        <div class="loader-center">
+            <MudProgressCircular Indeterminate="true" />
+        </div>
     }
     else
     {
-        <MudPaper Class="p-4 post-container" Elevation="1" Style="padding: 20px; border-radius: 8px;">
-            @if (!string.IsNullOrEmpty(post.ImageUrl))
-            {
-                <img src="@post.ImageUrl" alt="Post Image" class="post-image" />
-            }
-            <MudText Typo="Typo.h4" Class="mt-4">@post.Title</MudText>
-            <MudText Typo="Typo.subtitle2" Color="Color.Secondary" Class="mb-2">
-                Posted by <b>@post.AuthorName</b>
-                <MudFab Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary" Class="ml-2"
-                    OnClick="ToggleFollow" Label="@((isFollowing ? "Unfollow" : "Follow"))" />
+        <MudPaper Class="post-container p-4" Elevation="1">
+    @if (!string.IsNullOrEmpty(post.ImageUrl))
+    {
+        <img src="@post.ImageUrl" alt="Post Image" class="post-image mb-3" />
+    }
 
-            </MudText>
-            <MudText Typo="Typo.body1">@((MarkupString)post.Content)</MudText>
+    <MudText Typo="Typo.h4" Class="mb-1">@post.Title</MudText>
 
-            <div class="mt-4 d-flex gap-4 align-center">
-                <MudIconButton Icon="@Icons.Material.Filled.ThumbUp" OnClick="LikePost" />
-                <MudText>@post.Likes Likes</MudText>
-                <MudIcon Icon="@Icons.Material.Filled.Comment" />
-                <MudText>@post.CommentCount Comments</MudText>
-            </div>
+    <div class="post-meta d-flex align-center justify-between mb-3">
+        <MudText Typo="Typo.subtitle2" Color="Color.Secondary">
+            Posted by <b>@post.AuthorName</b>
+        </MudText>
 
-            <div class="comment-section mt-4">
-                <MudTextField @bind-Value="newComment" Immediate="true" Placeholder="Write a comment..." Class="my-2" />
-                <MudFab OnClick="SubmitComment" Color="Color.Success" StartIcon="@Icons.Material.Filled.Send" Disabled="@string.IsNullOrWhiteSpace(newComment)" Label="Reply"/>
+        <div class="follow-pill" @onclick="ToggleFollow">
+            @(isFollowing ? "Unfollow" : "Follow")
+        </div>
+    </div>
 
-                @if (comments != null && comments.Any())
+    <MudText Typo="Typo.body1" Class="post-content mb-4">@((MarkupString)post.Content)</MudText>
+
+    <div class="interaction-bar d-flex align-center gap-4 mb-3">
+        <MudIconButton Icon="@Icons.Material.Filled.ThumbUp" OnClick="LikePost" />
+        <MudText>@post.Likes Likes</MudText>
+
+        <MudIcon Icon="@Icons.Material.Filled.Comment" />
+        <MudText>@post.CommentCount Comments</MudText>
+    </div>
+
+    <div class="comment-section mt-3">
+        <MudTextField @bind-Value="newComment" Label="Write a comment..." Immediate="true"  Class="mb-2" />
+        <MudFab OnClick="SubmitComment" Color="Color.Success" Size="Size.Small" StartIcon="@Icons.Material.Filled.Send"
+                Disabled="@string.IsNullOrWhiteSpace(newComment)" Label="Reply" />
+
+        @if (comments != null && comments.Any())
+        {
+            <div class="mt-3">
+                @foreach (var comment in comments)
                 {
-                    <div class="mt-2">
-                        @foreach (var comment in comments)
-                        {
-                            <div class="comment mb-1">
-                                <b>@comment.AuthorName</b>: @comment.Content
-                            </div>
-                        }
+                    <div class="comment mb-2">
+                        <b>@comment.AuthorName</b>: @comment.Content
                     </div>
                 }
             </div>
-        </MudPaper>
+        }
+    </div>
+</MudPaper>
+
     }
 </MudContainer>
 

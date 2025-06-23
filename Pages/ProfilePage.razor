@@ -135,51 +135,47 @@
         }
     </div>
     <div class="preferences-container">
-    <div class="preferences-header">
-        <MudText Typo="Typo.h6">Your Preferences</MudText>
-       <MudIconButton Icon="@Icons.Material.Filled.Add"
-               Color="Color.Primary"
-               OnClick="@(() => isDialogOpen = !isDialogOpen)"
-                />
+        <div class="preferences-header">
+            <MudText Typo="Typo.h6">Your Preferences</MudText>
+            <MudFab Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Size="Size.Small"
+                OnClick="@(() => isDialogOpen = !isDialogOpen)" />
+        </div>
+<br>
+        @if (userPreferences?.Preferences != null && userPreferences.Preferences.Any())
+        {
+            <MudPaper Class="preferences-box" Elevation="3">
+                <MudChipSet T="Color" Class="chip-set" MultiSelection="false">
+                    @foreach (var pref in userPreferences.Preferences)
+                    {
+                        <MudChip Color="Color.Primary" Class="chip">@pref</MudChip>
+                    }
+                </MudChipSet>
+            </MudPaper>
+        }
+        else
+        {
+            <MudPaper Class="preferences-box" Elevation="3">
+                <MudText>No preferences yet.</MudText>
+            </MudPaper>
+        }
     </div>
 
-    @if (userPreferences?.Preferences != null && userPreferences.Preferences.Any())
-    {
-        <MudPaper Class="preferences-box" Elevation="3">
-            <MudChipSet T="Color" Class="chip-set" MultiSelection="false">
-                @foreach (var pref in userPreferences.Preferences)
+    <MudPopover Open="@isDialogOpen" AnchorOrigin="Origin.TopCenter" TransformOrigin="Origin.TopRight" Paper="false">
+        <MudPaper Class="popover-content ">
+            <MudText Typo="Typo.h6">Add Preferences</MudText>
+            <MudSelect T="string" Label="Select Topics" @bind-SelectedValues="selectedTopics" MultiSelection="true"
+                Class="w-100 mt-2" ShrinkLabel Clearable>
+                @foreach (var topic in allTopics)
                 {
-                    <MudChip Color="Color.Primary" Class="chip">@pref</MudChip>
+                    <MudSelectItem Value="@topic">@topic</MudSelectItem>
                 }
-            </MudChipSet>
+            </MudSelect>
+            <div class="mt-4 d-flex justify-end gap-2">
+                <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="SubmitPreferences">Save</MudButton>
+                <MudButton Variant="Variant.Outlined" OnClick="@(() => isDialogOpen = false)">Cancel</MudButton>
+            </div>
         </MudPaper>
-    }
-    else
-    {
-        <MudPaper Class="preferences-box" Elevation="3">
-            <MudText>No preferences yet.</MudText>
-        </MudPaper>
-    }
-</div>
-
-<MudPopover Open="@isDialogOpen" AnchorOrigin="Origin.TopRight" TransformOrigin="Origin.TopRight" >
-    <MudPaper Class="popover-content p-4">
-        <MudText Typo="Typo.h6">Add Preferences</MudText>
-        <MudSelect T="string" Label="Select Topics"
-                   @bind-SelectedValues="selectedTopics"
-                   MultiSelection="true"
-                   Class="w-100 mt-2">
-            @foreach (var topic in allTopics)
-            {
-                <MudSelectItem Value="@topic">@topic</MudSelectItem>
-            }
-        </MudSelect>
-        <div class="mt-4 d-flex justify-end gap-2">
-            <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="SubmitPreferences">Save</MudButton>
-            <MudButton Variant="Variant.Outlined" OnClick="@(() => isDialogOpen = false)">Cancel</MudButton>
-        </div>
-    </MudPaper>
-</MudPopover>
+    </MudPopover>
 
 </div>
 
@@ -195,9 +191,9 @@
     private List<FollowUser> following = new();
     private List<Post>? posts;
     private UserPreference? userPreferences;
-     private IEnumerable<string> selectedTopics = new List<string>();
+    private IEnumerable<string> selectedTopics = new List<string>();
     private List<string> allTopics = new();
-   private bool isDialogOpen = false;
+    private bool isDialogOpen = false;
 
 
     protected override async Task OnInitializedAsync()

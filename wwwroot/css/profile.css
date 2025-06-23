@@ -12,14 +12,15 @@
 
 }
 .user-profile {
-    flex: 2;
+    flex: 1;
     min-width: 280px;
-    max-width: 600px;
+    max-width: 700px;
 }
 
 .follows-card {
     flex: 1;
     min-width: 320px;
+    max-height: 300px;
 }
 
 .profile-card {
@@ -335,7 +336,12 @@
     flex-wrap: wrap;
     gap: 0.5rem;
 }
+.preferences-header{
+    display: flex;
+    gap: 20px;
+    align-items: center;
 
+}
 .chip-set {
     display: flex;
     flex-wrap: wrap;
@@ -350,4 +356,9 @@
     width: 300px;
     background-color: white;
     border-radius: 8px;
+    padding: 10px;
+}
+
+.popup{
+    margin: 10px;
 }

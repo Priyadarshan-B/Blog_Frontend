@@ -5,6 +5,7 @@
 @using System.Text
 @using System.Text.Json
 @using System.Net.Http.Headers
+@using System.Collections.Generic
 
 @inject AppConfiguration AppConfig
 
@@ -21,16 +22,12 @@
 <MudPaper Class="p-6 mx-auto mt-4" Style="max-width: 800px; padding: 20px; border-radius: 8px; ">
     <MudText Typo="Typo.h5" Class="mb-4">Write a New Blog Post</MudText>
 
-    <MudTextField @bind-Value="Title"
-                  Label="Title"
-                  Variant="Variant.Outlined"
-                  FullWidth="true"
-                  Required="true"
-                  RequiredError="Title is required!" />
+    <MudTextField @bind-Value="Title" Label="Title" Variant="Variant.Outlined" FullWidth="true" Required="true"
+        RequiredError="Title is required!" />
 
-<MudText Typo="Typo.subtitle1" Class="mt-4">Content</MudText>
+    <MudText Typo="Typo.subtitle1" Class="mt-4">Content</MudText>
 
-<div id="editor" style="height: 300px; margin-top: 10px; padding: 10px; border-radius: 5px;"></div>
+    <div id="editor" style="height: 300px; margin-top: 10px; padding: 10px; border-radius: 5px;"></div>
 
     @* <MudTextField @bind-Value="Content"
                   Label="Content"
@@ -42,32 +39,23 @@
                   Required="true"
                   RequiredError="Content is required!" /> *@
 
-<MudSelect T="string"
-           Label="Select Preference"
-           @bind-Value="SelectedPreference"
-           Variant="Variant.Outlined"
-           Required="true"
-           RequiredError="Preference is required!"
-           Class="mt-4"
-           FullWidth="true">
-    @if (Preferences != null)
-    {
-        @foreach (var pref in Preferences)
+    <MudSelect T="string" Label="Select Topics" Variant="Variant.Outlined" @bind-SelectedValues="selectedTopics"
+        MultiSelection="true" Class="w-100 mt-2" Clearable>
+        @foreach (var topic in allTopics)
         {
-            <MudSelectItem Value="@pref.Topic">@pref.Topic</MudSelectItem>
+            <MudSelectItem Value="@topic">@topic</MudSelectItem>
         }
-    }
-</MudSelect>
+    </MudSelect>
+
+
     <MudDivider Class="my-4" />
 
     <MudText Typo="Typo.subtitle1" GutterBottom="true">Upload Image</MudText>
 
     <MudFileUpload T="IBrowserFile" FilesChanged="HandleFileSelectedMud" Accept=".jpg,.jpeg,.png">
         <ActivatorContent>
-            <MudFab Color="Color.Primary"
-            Size="Size.Small"
-                    StartIcon="@Icons.Material.Filled.Image"
-                    Label="Select Image" />
+            <MudFab Color="Color.Primary" Size="Size.Small" StartIcon="@Icons.Material.Filled.Image"
+                Label="Select Image" />
         </ActivatorContent>
     </MudFileUpload>
 
@@ -78,20 +66,12 @@
 
     @if (!string.IsNullOrEmpty(PreviewUrl))
     {
-        <img src="@PreviewUrl"
-             alt="Image Preview"
-             class="my-2"
-             style="max-width: 100%; height: 100%; border-radius: 8px;" />
+        <img src="@PreviewUrl" alt="Image Preview" class="my-2"
+            style="max-width: 100%; height: 100%; border-radius: 8px;" />
     }
 
-    <MudFab OnClick="SubmitPost"
-            Variant="Variant.Outlined"
-            Color="Color.Success"
-            Class="mt-4 float-right"
-            Size="Size.Small"
-            StartIcon="@Icons.Material.Rounded.Send"
-            Label="Publish"
-            />
+    <MudFab OnClick="SubmitPost" Variant="Variant.Outlined" Color="Color.Success" Class="mt-4 float-right"
+        Size="Size.Small" StartIcon="@Icons.Material.Rounded.Send" Label="Publish" />
 </MudPaper>
 
 @code {
@@ -100,23 +80,25 @@
     private string Content = string.Empty;
     private IBrowserFile? SelectedFile;
     private string? PreviewUrl;
-    private string? SelectedPreference;
-private List<Preference> Preferences = new();
+    private IEnumerable<string> selectedTopics = new List<string>();
+    private List<string> allTopics = new();
+
+    private List<Preference> Preferences = new();
     private string HtmlContent = "";
 
-protected override async Task OnAfterRenderAsync(bool firstRender)
-{
-    if (firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await JS.InvokeVoidAsync("quillEditor.init");
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("quillEditor.init");
+        }
     }
-}
 
     private async Task HandleFileSelectedMud(IBrowserFile file)
     {
         SelectedFile = file;
 
-        if (SelectedFile != null && SelectedFile.Size <= 5 * 1024 * 1024) // Limit preview size to 5MB
+        if (SelectedFile != null && SelectedFile.Size <= 5 * 1024 * 1024)
         {
             try
             {
@@ -143,20 +125,20 @@ protected override async Task OnAfterRenderAsync(bool firstRender)
 
     private async Task SubmitPost()
     {
-            HtmlContent = await JS.InvokeAsync<string>("quillEditor.getContent");
+        HtmlContent = await JS.InvokeAsync<string>("quillEditor.getContent");
 
-        
+
         if (string.IsNullOrWhiteSpace(Title))
         {
             Snackbar.Add("Title is required!", Severity.Warning);
             return;
         }
 
-           if (string.IsNullOrWhiteSpace(HtmlContent) || HtmlContent == "<p><br></p>")
-    {
-        Snackbar.Add("Content is required!", Severity.Warning);
-        return;
-    }
+        if (string.IsNullOrWhiteSpace(HtmlContent) || HtmlContent == "<p><br></p>")
+        {
+            Snackbar.Add("Content is required!", Severity.Warning);
+            return;
+        }
 
         var content = new MultipartFormDataContent();
 
@@ -171,13 +153,14 @@ protected override async Task OnAfterRenderAsync(bool firstRender)
         {
             content.Add(new StringContent(AuthService.UserName), "AuthorName");
         }
-        if (string.IsNullOrWhiteSpace(SelectedPreference))
-{
-    Snackbar.Add("Please select a preference/topic.", Severity.Warning);
-    return;
-}
-var preferencesJson = JsonSerializer.Serialize(new List<string> { SelectedPreference });
-content.Add(new StringContent(preferencesJson, Encoding.UTF8, "application/json"), "Preferences");
+        if (selectedTopics == null || !selectedTopics.Any(t => !string.IsNullOrWhiteSpace(t)))
+        {
+            Snackbar.Add("Please select at least one valid preference/topic.", Severity.Warning);
+            return;
+        }
+
+        var preferencesCsv = string.Join(", ", selectedTopics.Where(t => !string.IsNullOrWhiteSpace(t)));
+        content.Add(new StringContent(preferencesCsv), "Preferences");
 
 
         if (SelectedFile != null)
@@ -234,20 +217,21 @@ content.Add(new StringContent(preferencesJson, Encoding.UTF8, "application/json"
         }
     }
     protected override async Task OnInitializedAsync()
-{
-    await LoadPreferences();
-}
+    {
+        await LoadPreferences();
+    }
 
-private async Task LoadPreferences()
-{
-    try
+    private async Task LoadPreferences()
     {
-        Preferences = await Http.GetFromJsonAsync<List<Preference>>("/api/preferences") ?? new();
+        try
+        {
+            var preferences = await Http.GetFromJsonAsync<List<Preference>>("http://localhost:5000/api/preferences");
+            allTopics = preferences?.Select(p => p.Topic).Distinct().ToList() ?? new();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Failed to load preferences.", Severity.Error);
+            Console.Error.WriteLine($"Error loading preferences: {ex.Message}");
+        }
     }
-    catch (Exception ex)
-    {
-        Snackbar.Add("Failed to load preferences.", Severity.Error);
-        Console.Error.WriteLine($"Error loading preferences: {ex.Message}");
-    }
-    } 
 }

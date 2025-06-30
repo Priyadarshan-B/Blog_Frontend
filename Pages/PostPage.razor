@@ -2,52 +2,56 @@
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @inject AuthService AuthService
-@inject AppConfiguration AppConfig
 @inject IDialogService DialogService
-
 
 @using Blog_Web.Services
 @using Blog_Web.Shared
 @using System.Text
+@using System.Text.Json
+
 <MudFab StartIcon="@Icons.Material.Filled.ChatBubble" Color="Color.Secondary" Class="chat-button"
     OnClick="ToggleChat" />
+
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
     <MudText Typo="Typo.h4" GutterBottom="true">For You</MudText>
 
     <div class="page-layout">
-        <div class="post-list">
-            @if (posts == null)
+        <!-- Main Posts Section -->
+        <div class="post-list scroll-section">
+            <MudText Typo="Typo.h6" GutterBottom="true">All Posts</MudText>
+
+            @if (displayedPosts == null)
             {
                 <MudProgressCircular Indeterminate="true" />
             }
-            else if (!posts.Any())
+            else if (!displayedPosts.Any())
             {
                 <MudText>No posts found.</MudText>
             }
             else
             {
-                @foreach (var post in posts)
+                @foreach (var post in displayedPosts)
                 {
                     <div class="post-card" @onclick="() => NavigateToBlog(post.Id)">
                         <div class="post-left">
-                            <MudText Typo="Typo.h6" Class="post-title">@post.Title</MudText>
+                            <MudText Typo="Typo.h6">@post.Title</MudText>
                             <MudText Class="post-meta">@post.AuthorName - @post.CreatedAt.ToLocalTime().ToString("g")</MudText>
                             <MudText Typo="Typo.body1">
                                 @((MarkupString)(post.Content.Length > 120 ? post.Content.Substring(0, 120) + "..." :
                                                         post.Content))
-                    </MudText>
-                    <div class="post-actions">
-                        <div class="comment-actions">
-                            <MudIcon Icon="@Icons.Material.Filled.ThumbUp" />
-                            <MudText Class="comment-text">@post.Likes Likes</MudText>
+                            </MudText>
+                            <div class="post-actions">
+                                <div class="comment-actions">
+                                    <MudIcon Icon="@Icons.Material.Filled.ThumbUp" />
+                                    <MudText Class="comment-text">@post.Likes Likes</MudText>
+                                </div>
+                                <div class="comment-actions">
+                                    <MudIcon Icon="@Icons.Material.Filled.Comment" />
+                                    <MudText Class="comment-text">@post.CommentCount Comments</MudText>
+                                </div>
+                            </div>
                         </div>
-                        <div class="comment-actions">
-                            <MudIcon Icon="@Icons.Material.Filled.Comment" />
-                            <MudText Class="comment-text">@post.CommentCount Comments</MudText>
-                        </div>
-                    </div>
-                </div>
-                @if (!string.IsNullOrEmpty(post.ImageUrl))
+                        @if (!string.IsNullOrEmpty(post.ImageUrl))
                         {
                             <div class="post-right">
                                 <img src="@post.ImageUrl" alt="Post Image" class="post-img" />
@@ -55,19 +59,66 @@
                         }
                     </div>
                 }
+
+                @if (hasMorePosts)
+                {
+                    <div class="text-center mt-4">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="LoadMorePosts">
+                            Load More
+                        </MudButton>
+                    </div>
+                }
             }
         </div>
 
-        <div class="suggestions-card">
-            <MudText Typo="Typo.h6">Suggestions</MudText>
-            <MudText Typo="Typo.body2">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque vitae sapien ut turpis commodo
-                convallis. Sed non nibh ut erat.
-            </MudText>
+        <!-- Preference-based Posts Section -->
+        <div class="preferences-posts scroll-section">
+            <MudText Typo="Typo.h6" GutterBottom="true">Suggested Posts</MudText>
+
+            @if (displayedPreferencePosts == null)
+            {
+                <MudProgressCircular Indeterminate="true" />
+            }
+            else if (!displayedPreferencePosts.Any())
+            {
+                <MudText>No preference-based posts found.</MudText>
+            }
+            else
+            {
+                @foreach (var post in displayedPreferencePosts)
+                {
+                    <div class="post-card" @onclick="() => NavigateToBlog(post.Id)">
+                        <div class="post-left">
+                            <MudText Typo="Typo.h6">@post.Title</MudText>
+                            <MudText Class="post-meta">@post.AuthorName - @post.CreatedAt.ToLocalTime().ToString("g")</MudText>
+                            <MudText Typo="Typo.body1">
+                                @((MarkupString)(post.Content.Length > 120 ? post.Content.Substring(0, 120) + "..." :
+                                                        post.Content))
+                            </MudText>
+                        </div>
+                        @if (!string.IsNullOrEmpty(post.ImageUrl))
+                        {
+                            <div class="post-right">
+                                <img src="@post.ImageUrl" alt="Post Image" class="post-img" />
+                            </div>
+                        }
+                    </div>
+                }
+
+                @if (hasMorePreferencePosts)
+                {
+                    <div class="text-center mt-4">
+                        <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="LoadMorePreferencePosts">
+                            Load More Suggestions
+                        </MudButton>
+                    </div>
+                }
+            }
         </div>
     </div>
 </MudContainer>
-@* chat bot *@
+
+<!-- ChatBot -->
 <MudPopover Open="_isOpen" class="chat" OverflowBehavior="OverflowBehavior.FlipAlways" AnchorOrigin="Origin.CenterLeft"
     TransformOrigin="Origin.TopCenter">
     <MudPaper Class="chat-box">
@@ -77,19 +128,36 @@
             <div class="chat-messages">
                 @foreach (var message in messages)
                 {
-                    <div class="chat-message">
-                        <MudText Typo="Typo.body2">@message</MudText>
+                    <div class="chat-message @(message.IsUser ? "user" : "bot")">
+                        @if (!message.IsUser)
+                        {
+                            <div class="avatar-icon bot-avatar">
+                                <MudIcon Icon="@Icons.Material.Filled.SmartToy" Size="Size.Medium" />
+                            </div>
+                        }
+
+                        <div class="message-bubble">
+                            <MudText Typo="Typo.body2">@message.Text</MudText>
+                        </div>
+
+                        @if (message.IsUser)
+                        {
+                            <div class="avatar-icon user-avatar">
+                                <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Medium" />
+                            </div>
+                        }
                     </div>
                 }
 
                 @if (isLoading)
                 {
-                    <div class="chat-message bot-thinking d-flex align-items-center gap-2">
+                    <div class="chat-message bot d-flex align-items-center gap-2">
                         <MudProgressCircular Size="Size.Small" Color="Color.Primary" Indeterminate="true" />
-                        <MudText Typo="Typo.body2" Color="Color.Secondary"><em>@currentLoadingMessage</em></MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            <em>@currentLoadingMessage</em>
+                        </MudText>
                     </div>
                 }
-
             </div>
 
             <div class="chat-input">
@@ -101,97 +169,151 @@
     </MudPaper>
 </MudPopover>
 
-
-
-
 @code {
-    private List<Post>? posts;
+    private List<Post> allPosts = new();
+    private List<Post> displayedPosts = new();
+    private int postsToShow = 5;
+    private bool hasMorePosts = false;
+
+    private List<Post> allPreferencePosts = new();
+    private List<Post> displayedPreferencePosts = new();
+    private int preferencePostsToShow = 5;
+    private bool hasMorePreferencePosts = false;
+
     private bool _isOpen = false;
     private string inputText = string.Empty;
-    private List<string> messages = new();
+    private List<ChatMessage> messages = new();
     private bool isLoading = false;
+
+    private string currentLoadingMessage = "Bot is thinking...";
+    private System.Timers.Timer? loadingMessageTimer;
+    private int loadingIndex = 0;
+
+    private List<string> loadingMessages = new()
+    {
+        "Bot is thinking...",
+        "Please wait...",
+        "Generating response...",
+        "Analyzing your question...",
+        "Almost there..."
+    };
 
     protected override async Task OnInitializedAsync()
     {
-
         await RefreshPosts();
-
+        await FetchPostsByPreference();
     }
 
     private async Task RefreshPosts()
     {
         try
         {
-            posts = await Http.GetFromJsonAsync<List<Post>>("/api/post") ?? new();
+            allPosts = await Http.GetFromJsonAsync<List<Post>>("/api/post") ?? new();
+            displayedPosts = allPosts.Take(postsToShow).ToList();
+            hasMorePosts = allPosts.Count > displayedPosts.Count;
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error fetching posts: {ex.Message}");
-            posts = new();
+            allPosts = new();
+            displayedPosts = new();
+            hasMorePosts = false;
         }
+    }
+
+    private async Task FetchPostsByPreference()
+    {
+        try
+        {
+            var userId = AuthService.UserId;
+            var userPref = await Http.GetFromJsonAsync<UserPreference>($"/api/UserPreference/{userId}");
+
+            if (userPref?.Preferences?.Any() == true)
+            {
+                var payload = new { preferences = userPref.Preferences };
+                var json = JsonSerializer.Serialize(payload);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await Http.PostAsync("http://localhost:5000/api/Post/preference", content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    allPreferencePosts = await response.Content.ReadFromJsonAsync<List<Post>>() ?? new();
+                    displayedPreferencePosts = allPreferencePosts.Take(preferencePostsToShow).ToList();
+                    hasMorePreferencePosts = allPreferencePosts.Count > displayedPreferencePosts.Count;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching preference-based posts: {ex.Message}");
+            allPreferencePosts = new();
+            displayedPreferencePosts = new();
+            hasMorePreferencePosts = false;
+        }
+    }
+
+    private void LoadMorePosts()
+    {
+        postsToShow += 5;
+        displayedPosts = allPosts.Take(postsToShow).ToList();
+        hasMorePosts = allPosts.Count > displayedPosts.Count;
+    }
+
+    private void LoadMorePreferencePosts()
+    {
+        preferencePostsToShow += 5;
+        displayedPreferencePosts = allPreferencePosts.Take(preferencePostsToShow).ToList();
+        hasMorePreferencePosts = allPreferencePosts.Count > displayedPreferencePosts.Count;
     }
 
     private void NavigateToBlog(string postId)
     {
         Navigation.NavigateTo($"/blogpage/{postId}");
     }
-    void ToggleChat()
+
+    private void ToggleChat()
     {
         _isOpen = !_isOpen;
     }
-    private List<string> loadingMessages = new()
-{
-"Bot is thinking...",
-"Please wait...",
-"Generating response...",
-"Analyzing your question...",
-"Almost there..."
-};
 
-    private string currentLoadingMessage = "Bot is thinking...";
-    private System.Timers.Timer loadingMessageTimer;
-    private int loadingIndex = 0;
-    async Task SendMessage()
+    private async Task SendMessage()
     {
         if (string.IsNullOrWhiteSpace(inputText)) return;
 
-        messages.Add("You: " + inputText);
+        messages.Add(new ChatMessage { Text = inputText, IsUser = true });
+        var userInput = inputText;
         inputText = string.Empty;
-
         StartLoadingAnimation();
 
         try
         {
-            var payload = new { query = inputText };
-            var json = System.Text.Json.JsonSerializer.Serialize(payload);
+            var payload = new { query = userInput };
+            var json = JsonSerializer.Serialize(payload);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             var response = await Http.PostAsync("http://localhost:5182/Search/search", content);
-            Console.WriteLine($"Response Status: {response}");
 
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadFromJsonAsync<SummaryResponse>();
-                if (result?.summary != null)
-                    messages.Add("Bot: " + result.summary);
-                else
-                    messages.Add("Bot: No summary found.");
+                messages.Add(new ChatMessage { Text = result?.summary ?? "No summary found.", IsUser = false });
             }
             else
             {
-                messages.Add("Bot: Something went wrong.");
+                messages.Add(new ChatMessage { Text = "Something went wrong.", IsUser = false });
             }
         }
         catch (Exception ex)
         {
-            messages.Add("Bot: Error occurred.");
+            messages.Add(new ChatMessage { Text = "Error occurred.", IsUser = false });
             Console.WriteLine(ex.Message);
         }
 
         StopLoadingAnimation();
     }
 
-    void StartLoadingAnimation()
+    private void StartLoadingAnimation()
     {
         isLoading = true;
         loadingIndex = 0;
@@ -207,7 +329,7 @@
         loadingMessageTimer.Start();
     }
 
-    void StopLoadingAnimation()
+    private void StopLoadingAnimation()
     {
         isLoading = false;
         loadingMessageTimer?.Stop();
@@ -217,6 +339,19 @@
 
     public class SummaryResponse
     {
-        public string summary { get; set; }
+        public string summary { get; set; } = string.Empty;
+    }
+
+    public class UserPreference
+    {
+        public string Id { get; set; } = "";
+        public string UserId { get; set; } = "";
+        public List<string> Preferences { get; set; } = new();
+    }
+
+    public class ChatMessage
+    {
+        public string Text { get; set; }
+        public bool IsUser { get; set; }
     }
 }

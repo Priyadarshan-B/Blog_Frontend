@@ -39,19 +39,19 @@
                             <MudText Typo="Typo.body1">
                                 @((MarkupString)(post.Content.Length > 120 ? post.Content.Substring(0, 120) + "..." :
                                                         post.Content))
-                            </MudText>
-                            <div class="post-actions">
-                                <div class="comment-actions">
-                                    <MudIcon Icon="@Icons.Material.Filled.ThumbUp" />
-                                    <MudText Class="comment-text">@post.Likes Likes</MudText>
-                                </div>
-                                <div class="comment-actions">
-                                    <MudIcon Icon="@Icons.Material.Filled.Comment" />
-                                    <MudText Class="comment-text">@post.CommentCount Comments</MudText>
-                                </div>
-                            </div>
+                    </MudText>
+                    <div class="post-actions">
+                        <div class="comment-actions">
+                            <MudIcon Icon="@Icons.Material.Filled.ThumbUp" />
+                            <MudText Class="comment-text">@post.Likes Likes</MudText>
                         </div>
-                        @if (!string.IsNullOrEmpty(post.ImageUrl))
+                        <div class="comment-actions">
+                            <MudIcon Icon="@Icons.Material.Filled.Comment" />
+                            <MudText Class="comment-text">@post.CommentCount Comments</MudText>
+                        </div>
+                    </div>
+                </div>
+                @if (!string.IsNullOrEmpty(post.ImageUrl))
                         {
                             <div class="post-right">
                                 <img src="@post.ImageUrl" alt="Post Image" class="post-img" />
@@ -94,9 +94,9 @@
                             <MudText Typo="Typo.body1">
                                 @((MarkupString)(post.Content.Length > 120 ? post.Content.Substring(0, 120) + "..." :
                                                         post.Content))
-                            </MudText>
-                        </div>
-                        @if (!string.IsNullOrEmpty(post.ImageUrl))
+                    </MudText>
+                </div>
+                @if (!string.IsNullOrEmpty(post.ImageUrl))
                         {
                             <div class="post-right">
                                 <img src="@post.ImageUrl" alt="Post Image" class="post-img" />
@@ -190,13 +190,13 @@
     private int loadingIndex = 0;
 
     private List<string> loadingMessages = new()
-    {
-        "Bot is thinking...",
-        "Please wait...",
-        "Generating response...",
-        "Analyzing your question...",
-        "Almost there..."
-    };
+{
+"Bot is thinking...",
+"Please wait...",
+"Generating response...",
+"Analyzing your question...",
+"Almost there..."
+};
 
     protected override async Task OnInitializedAsync()
     {
@@ -288,12 +288,15 @@
 
         try
         {
-            var payload = new { query = userInput };
+            var payload = new SearchRequest
+            {
+                Query = userInput,
+                UserId = AuthService.UserId
+            };
             var json = JsonSerializer.Serialize(payload);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             var response = await Http.PostAsync("http://localhost:5182/Search/search", content);
-
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadFromJsonAsync<SummaryResponse>();

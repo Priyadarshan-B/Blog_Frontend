@@ -1,0 +1,62 @@
+@using MudBlazor
+@using Microsoft.AspNetCore.Components
+
+<MudPopover Open="@Open" AnchorOrigin="@AnchorOrigin" TransformOrigin="@TransformOrigin"
+            OpenChanged="OnOpenChanged">
+    <MudPaper Class="p-4" Width="300px"> 
+        <MudText Typo="Typo.subtitle1">Why did you dislike the response?</MudText>
+        <MudTextField @bind-Value="CommentText" Label="Comment" FullWidth="true" Class="mt-2" />
+        <div class="mt-4 d-flex justify-end gap-2">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit">Submit</MudButton>
+            <MudButton Variant="Variant.Outlined" OnClick="Cancel">Cancel</MudButton>
+        </div>
+    </MudPaper>
+</MudPopover>
+
+@code {
+    [Parameter]
+    public bool Open { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; } 
+
+    [Parameter]
+    public string ResponseText { get; set; } = string.Empty; 
+
+    [Parameter]
+    public EventCallback<string> OnSubmit { get; set; } 
+
+    [Parameter]
+    public EventCallback OnCancel { get; set; } 
+
+    [Parameter]
+    public Origin AnchorOrigin { get; set; } = Origin.BottomCenter;
+
+    [Parameter]
+    public Origin TransformOrigin { get; set; } = Origin.TopCenter;
+
+    private string CommentText { get; set; } = string.Empty;
+
+    private Task OnOpenChanged(bool isOpen)
+    {
+        if (!isOpen)
+        {
+            CommentText = string.Empty;
+        }
+        return OpenChanged.InvokeAsync(isOpen);
+    }
+
+    private async Task Submit()
+    {
+        await OnSubmit.InvokeAsync(CommentText);
+        CommentText = string.Empty;
+        await OpenChanged.InvokeAsync(false); 
+    }
+
+    private async Task Cancel()
+    {
+        CommentText = string.Empty; 
+        await OnCancel.InvokeAsync();
+        await OpenChanged.InvokeAsync(false); 
+    }
+}

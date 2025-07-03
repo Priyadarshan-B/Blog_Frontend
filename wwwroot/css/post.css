@@ -131,6 +131,7 @@
 
 .chat {
     z-index: 1001; 
+    min-height: 350px;
 }
 
 .chat-box {

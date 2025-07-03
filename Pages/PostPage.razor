@@ -3,6 +3,8 @@
 @inject NavigationManager Navigation
 @inject AuthService AuthService
 @inject IDialogService DialogService
+@using MudBlazor
+@inject IJSRuntime JS
 
 @using Blog_Web.Services
 @using Blog_Web.Shared
@@ -16,7 +18,6 @@
     <MudText Typo="Typo.h4" GutterBottom="true">For You</MudText>
 
     <div class="page-layout">
-        <!-- Main Posts Section -->
         <div class="post-list scroll-section">
             <MudText Typo="Typo.h6" GutterBottom="true">All Posts</MudText>
 
@@ -38,20 +39,20 @@
                             <MudText Class="post-meta">@post.AuthorName - @post.CreatedAt.ToLocalTime().ToString("g")</MudText>
                             <MudText Typo="Typo.body1">
                                 @((MarkupString)(post.Content.Length > 120 ? post.Content.Substring(0, 120) + "..." :
-                                                        post.Content))
-                    </MudText>
-                    <div class="post-actions">
-                        <div class="comment-actions">
-                            <MudIcon Icon="@Icons.Material.Filled.ThumbUp" />
-                            <MudText Class="comment-text">@post.Likes Likes</MudText>
+                                                    post.Content))
+                            </MudText>
+                            <div class="post-actions">
+                                <div class="comment-actions">
+                                    <MudIcon Icon="@Icons.Material.Filled.ThumbUp" />
+                                    <MudText Class="comment-text">@post.Likes Likes</MudText>
+                                </div>
+                                <div class="comment-actions">
+                                    <MudIcon Icon="@Icons.Material.Filled.Comment" />
+                                    <MudText Class="comment-text">@post.CommentCount Comments</MudText>
+                                </div>
+                            </div>
                         </div>
-                        <div class="comment-actions">
-                            <MudIcon Icon="@Icons.Material.Filled.Comment" />
-                            <MudText Class="comment-text">@post.CommentCount Comments</MudText>
-                        </div>
-                    </div>
-                </div>
-                @if (!string.IsNullOrEmpty(post.ImageUrl))
+                        @if (!string.IsNullOrEmpty(post.ImageUrl))
                         {
                             <div class="post-right">
                                 <img src="@post.ImageUrl" alt="Post Image" class="post-img" />
@@ -71,7 +72,6 @@
             }
         </div>
 
-        <!-- Preference-based Posts Section -->
         <div class="preferences-posts scroll-section">
             <MudText Typo="Typo.h6" GutterBottom="true">Suggested Posts</MudText>
 
@@ -93,10 +93,10 @@
                             <MudText Class="post-meta">@post.AuthorName - @post.CreatedAt.ToLocalTime().ToString("g")</MudText>
                             <MudText Typo="Typo.body1">
                                 @((MarkupString)(post.Content.Length > 120 ? post.Content.Substring(0, 120) + "..." :
-                                                        post.Content))
-                    </MudText>
-                </div>
-                @if (!string.IsNullOrEmpty(post.ImageUrl))
+                                                    post.Content))
+                            </MudText>
+                        </div>
+                        @if (!string.IsNullOrEmpty(post.ImageUrl))
                         {
                             <div class="post-right">
                                 <img src="@post.ImageUrl" alt="Post Image" class="post-img" />
@@ -117,12 +117,10 @@
         </div>
     </div>
 </MudContainer>
-
-<!-- ChatBot -->
-<MudPopover Open="_isOpen" class="chat" OverflowBehavior="OverflowBehavior.FlipAlways" AnchorOrigin="Origin.CenterLeft"
-    TransformOrigin="Origin.TopCenter">
+<MudPopover Open="_isOpen" Class="chat" OverflowBehavior="OverflowBehavior.FlipAlways" AnchorOrigin="Origin.CenterLeft"
+            TransformOrigin="Origin.TopCenter">
     <MudPaper Class="chat-box">
-        <MudText Typo="Typo.h6" GutterBottom="true">ChatBot Assistant</MudText>
+        <MudText Typo="Typo.h6" GutterBottom="true" Class="mud-text-align-center mud-primary-text mud-pb-2 mud-border-b-1 mud-border-solid mud-border-lines">ChatBot Assistant</MudText>
 
         <div class="chat-body">
             <div class="chat-messages">
@@ -136,8 +134,22 @@
                             </div>
                         }
 
-                        <div class="message-bubble">
+                        <div class="message-bubble @(message.IsUser ? "user-bubble" : "bot-bubble")">
                             <MudText Typo="Typo.body2">@message.Text</MudText>
+
+                            <div class="message-actions">
+                                <MudIconButton Icon="@Icons.Material.Filled.ContentCopy" Color="Color.Primary"
+                                               OnClick="() => CopyToClipboard(message.Text)" Size="Size.Small" />
+                                @if (!message.IsUser)
+                                {
+                                    <MudIconButton Icon="@Icons.Material.Filled.ThumbUp" Color="Color.Success"
+                                                   OnClick='() => SendFeedback(message.Text, "Positive")' Size="Size.Small" />
+                                    <MudIconButton Icon="@Icons.Material.Filled.ThumbDown" Color="Color.Error"
+                                                   OnClick="() => OpenDislikePopover(message.Text)" Size="Size.Small" />
+                                    <MudIconButton Icon="@Icons.Material.Filled.Refresh" Color="Color.Secondary"
+                                                   OnClick="() => ResendMessage(message.Text)" Size="Size.Small" />
+                                }
+                            </div>
                         </div>
 
                         @if (message.IsUser)
@@ -151,7 +163,7 @@
 
                 @if (isLoading)
                 {
-                    <div class="chat-message bot d-flex align-items-center gap-2">
+                    <div class="chat-message bot mud-d-flex mud-align-items-center mud-gap-2 mud-mt-3">
                         <MudProgressCircular Size="Size.Small" Color="Color.Primary" Indeterminate="true" />
                         <MudText Typo="Typo.body2" Color="Color.Secondary">
                             <em>@currentLoadingMessage</em>
@@ -163,11 +175,24 @@
             <div class="chat-input">
                 <MudTextField @bind-Value="inputText" Placeholder="Ask something..." FullWidth="true" />
                 <MudFab Color="Color.Success" OnClick="SendMessage" Size="Size.Medium"
-                    StartIcon="@Icons.Material.Filled.Send" />
+                        StartIcon="@Icons.Material.Filled.Send" />
             </div>
         </div>
     </MudPaper>
 </MudPopover>
+
+<MudPopover Open="showCommentBox" Class="comment-popover" AnchorOrigin="Origin.BottomCenter"
+            TransformOrigin="Origin.TopCenter">
+    <MudPaper Class="mud-p-4">
+        <MudText Typo="Typo.subtitle1">Why did you dislike the response?</MudText>
+        <MudTextField @bind-Value="commentText" Label="Comment" FullWidth="true" Class="mud-mb-3" />
+        <div class="mud-mt-2 mud-d-flex mud-justify-end mud-gap-2">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SubmitComment">Submit</MudButton>
+            <MudButton Variant="Variant.Outlined" OnClick="CancelComment">Cancel</MudButton>
+        </div>
+    </MudPaper>
+</MudPopover>
+
 
 @code {
     private List<Post> allPosts = new();
@@ -188,20 +213,31 @@
     private string currentLoadingMessage = "Bot is thinking...";
     private System.Timers.Timer? loadingMessageTimer;
     private int loadingIndex = 0;
+private string lastUserQuery = "";
+
 
     private List<string> loadingMessages = new()
-{
-"Bot is thinking...",
-"Please wait...",
-"Generating response...",
-"Analyzing your question...",
-"Almost there..."
-};
+    {
+        "Bot is thinking...",
+        "Please wait...",
+        "Generating response...",
+        "Analyzing your question...",
+        "Almost there..."
+    };
+    private bool showCommentBox = false;
+    private string commentText = "";
+    private string selectedResponse = "";
 
     protected override async Task OnInitializedAsync()
     {
         await RefreshPosts();
         await FetchPostsByPreference();
+    }
+
+    private void OpenDislikePopover(string responseText)
+    {
+        selectedResponse = responseText;
+        showCommentBox = true;
     }
 
     private async Task RefreshPosts()
@@ -277,43 +313,52 @@
         _isOpen = !_isOpen;
     }
 
-    private async Task SendMessage()
+  private async Task SendMessage()
+{
+    if (string.IsNullOrWhiteSpace(inputText)) return;
+
+    messages.Add(new ChatMessage { Text = inputText, IsUser = true });
+    lastUserQuery = inputText; 
+    var userInput = inputText;
+    inputText = string.Empty;
+    StartLoadingAnimation();
+
+    try
     {
-        if (string.IsNullOrWhiteSpace(inputText)) return;
-
-        messages.Add(new ChatMessage { Text = inputText, IsUser = true });
-        var userInput = inputText;
-        inputText = string.Empty;
-        StartLoadingAnimation();
-
-        try
+        var payload = new SearchRequest
         {
-            var payload = new SearchRequest
-            {
-                Query = userInput,
-                UserId = AuthService.UserId
-            };
-            var json = JsonSerializer.Serialize(payload);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            Query = userInput,
+            UserId = AuthService.UserId
+        };
+        var json = JsonSerializer.Serialize(payload);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await Http.PostAsync("http://localhost:5182/Search/search", content);
-            if (response.IsSuccessStatusCode)
-            {
-                var result = await response.Content.ReadFromJsonAsync<SummaryResponse>();
-                messages.Add(new ChatMessage { Text = result?.summary ?? "No summary found.", IsUser = false });
-            }
-            else
-            {
-                messages.Add(new ChatMessage { Text = "Something went wrong.", IsUser = false });
-            }
-        }
-        catch (Exception ex)
+        var response = await Http.PostAsync("http://localhost:5182/Search/search", content);
+        if (response.IsSuccessStatusCode)
         {
-            messages.Add(new ChatMessage { Text = "Error occurred.", IsUser = false });
-            Console.WriteLine(ex.Message);
+            var result = await response.Content.ReadFromJsonAsync<SummaryResponse>();
+            messages.Add(new ChatMessage { Text = result?.summary ?? "No summary found.", IsUser = false });
         }
+        else
+        {
+            messages.Add(new ChatMessage { Text = "Something went wrong.", IsUser = false });
+        }
+    }
+    catch (Exception ex)
+    {
+        messages.Add(new ChatMessage { Text = "Error occurred.", IsUser = false });
+        Console.WriteLine(ex.Message);
+    }
 
-        StopLoadingAnimation();
+    StopLoadingAnimation();
+}
+
+
+    private void CancelComment()
+    {
+        commentText = "";
+        selectedResponse = "";
+        showCommentBox = false;
     }
 
     private void StartLoadingAnimation()
@@ -332,6 +377,73 @@
         loadingMessageTimer.Start();
     }
 
+    private async Task CopyToClipboard(string text)
+    {
+        await JS.InvokeVoidAsync("copyToClipboard", text);
+    }
+    
+   private async Task SendFeedback(string responseText, string feedback)
+{
+    var payload = new ChatLogPayload
+    {
+        UserId = AuthService.UserId,
+        Query = lastUserQuery,
+        Response = responseText,
+        Feedback = feedback,
+        Comments = null
+    };
+
+    var json = JsonSerializer.Serialize(payload);
+    var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+    try
+    {
+        var response = await Http.PostAsync("/api/chatlog/log", content);
+        if (!response.IsSuccessStatusCode)
+        {
+            Console.WriteLine($"Feedback failed: {response.StatusCode}");
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error sending feedback: {ex.Message}");
+    }
+}
+
+private async Task SubmitComment()
+{
+    var payload = new ChatLogPayload
+    {
+        UserId = AuthService.UserId,
+        Query = lastUserQuery,
+        Response = selectedResponse,
+        Feedback = "Negative",
+        Comments = commentText
+    };
+
+    var json = JsonSerializer.Serialize(payload);
+    var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+    try
+    {
+        var response = await Http.PostAsync("/api/chatlog/log", content);
+        if (!response.IsSuccessStatusCode)
+        {
+            Console.WriteLine($"Comment submission failed: {response.StatusCode}");
+        }
+        else
+        {
+            commentText = "";
+            selectedResponse = "";
+            showCommentBox = false;
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error submitting comment: {ex.Message}");
+    }
+}
+
     private void StopLoadingAnimation()
     {
         isLoading = false;
@@ -339,6 +451,12 @@
         loadingMessageTimer?.Dispose();
         loadingMessageTimer = null;
     }
+    private async Task ResendMessage(string responseText)
+    {
+        inputText = responseText;
+        await SendMessage();
+    }
+
 
     public class SummaryResponse
     {
@@ -354,7 +472,34 @@
 
     public class ChatMessage
     {
-        public string Text { get; set; }
+        public string Text { get; set; } = string.Empty;
         public bool IsUser { get; set; }
     }
+
+    public class Post
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
+        public string Content { get; set; } = string.Empty;
+        public string AuthorName { get; set; } = string.Empty;
+        public DateTime CreatedAt { get; set; }
+        public int Likes { get; set; }
+        public int CommentCount { get; set; }
+        public string? ImageUrl { get; set; }
+    }
+
+    public class SearchRequest
+    {
+        public string Query { get; set; } = string.Empty;
+        public string UserId { get; set; } = string.Empty;
+    }
+    public class ChatLogPayload
+{
+    public string UserId { get; set; } = string.Empty;
+    public string Query { get; set; } = string.Empty;
+    public string Response { get; set; } = string.Empty;
+    public string? Feedback { get; set; }
+    public string? Comments { get; set; }
+}
+
 }

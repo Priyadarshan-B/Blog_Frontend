@@ -398,7 +398,7 @@ private string lastUserQuery = "";
 
     try
     {
-        var response = await Http.PostAsync("/api/chatlog/log", content);
+        var response = await Http.PostAsync("http://localhost:5182/api/ChatLog/log", content);
         if (!response.IsSuccessStatusCode)
         {
             Console.WriteLine($"Feedback failed: {response.StatusCode}");
@@ -426,7 +426,7 @@ private async Task SubmitComment()
 
     try
     {
-        var response = await Http.PostAsync("/api/chatlog/log", content);
+        var response = await Http.PostAsync("http://localhost:5182/api/ChatLog/log", content);
         if (!response.IsSuccessStatusCode)
         {
             Console.WriteLine($"Comment submission failed: {response.StatusCode}");
